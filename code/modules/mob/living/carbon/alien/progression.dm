@@ -24,6 +24,10 @@
 		to_chat(src, SPAN("warning", "You are not fully grown."))
 		return
 
+	if(istype(src.loc, /obj/machinery/atmospherics/pipe))
+		to_chat(src, SPAN("warning", "You cannot evolve right here."))
+		return
+
 	// confirm_evolution() handles choices and other specific requirements.
 	var/new_species = confirm_evolution()
 	if(!new_species || !adult_form )
@@ -43,8 +47,8 @@
 	else
 		adult.key = src.key
 
-	for (var/obj/item/W in src.contents)
-		src.drop_from_inventory(W)
+	for(var/obj/item/W in src.contents)
+		drop_from_inventory(W)
 
 	for(var/datum/language/L in languages)
 		adult.add_language(L.name)
