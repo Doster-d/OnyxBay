@@ -153,7 +153,7 @@
 			activate_pin(2)
 		if(3)
 			activate_pin(3)
-	var/mob/living/carbon/human/H = get_pin_data(IC_INPUT, 1)
+	var/mob/living/carbon/H = get_pin_data(IC_INPUT, 1)
 	if(!istype(H))
 		activate_pin(3)
 		return
@@ -549,6 +549,100 @@
 		set_pin_data(IC_OUTPUT, 7, E.encased != null)
 		set_pin_data(IC_OUTPUT, 8, E.open() == SURGERY_ENCASED)
 		set_pin_data(IC_OUTPUT, 9, E.open() == SURGERY_RETRACTED)
+
+	push_data()
+	activate_pin(2)
+
+/obj/item/integrated_circuit/medical/get_organs
+	name = "Organ locator"
+	desc = "A very small version of the medbot's medical analyser. This allows the machine to know what organs inside target. \
+	This type is much more precise, allowing the machine to know much more about the target's organs than a normal analyzer."
+	icon_state = "medscan_adv"
+	complexity = 12
+	inputs = list("target" = IC_PINTYPE_REF)
+	outputs = list(
+		"eyes" = IC_PINTYPE_REF,
+		"heart" = IC_PINTYPE_REF,
+		"lungs" = IC_PINTYPE_REF,
+		"brain" = IC_PINTYPE_REF,
+		"liver" = IC_PINTYPE_REF,
+		"kidneys" = IC_PINTYPE_REF,
+		"stomach" = IC_PINTYPE_REF,
+		"appendix" = IC_PINTYPE_REF,
+		"cell" = IC_PINTYPE_REF,
+		"neural lace" = IC_PINTYPE_REF
+	)
+	activators = list("scan" = IC_PINTYPE_PULSE_IN, "on scanned" = IC_PINTYPE_PULSE_OUT)
+	spawn_flags = IC_SPAWN_RESEARCH
+	power_draw_per_use = 80
+
+/obj/item/integrated_circuit/medical/get_organs/do_work(ord)
+	var/mob/living/carbon/human/H = get_pin_data_as_type(IC_INPUT, 1, /mob/living/carbon/human)
+	if(!istype(H)) //Invalid input
+		return
+	if(H.Adjacent(get_turf(src))) // Like normal analysers, it can't be used at range.
+		set_pin_data(IC_OUTPUT, 1, H.internal_organs_by_name[BP_EYES])
+		set_pin_data(IC_OUTPUT, 2, H.internal_organs_by_name[BP_HEART])
+		set_pin_data(IC_OUTPUT, 3, H.internal_organs_by_name[BP_LUNGS])
+		set_pin_data(IC_OUTPUT, 4, H.internal_organs_by_name[BP_BRAIN])
+		set_pin_data(IC_OUTPUT, 5, H.internal_organs_by_name[BP_LIVER])
+		set_pin_data(IC_OUTPUT, 6, H.internal_organs_by_name[BP_KIDNEYS])
+		set_pin_data(IC_OUTPUT, 7, H.internal_organs_by_name[BP_STOMACH])
+		set_pin_data(IC_OUTPUT, 8, H.internal_organs_by_name[BP_APPENDIX])
+		set_pin_data(IC_OUTPUT, 9, H.internal_organs_by_name[BP_CELL])
+		set_pin_data(IC_OUTPUT, 10, H.internal_organs_by_name[BP_STACK])
+
+	push_data()
+	activate_pin(2)
+
+/obj/item/integrated_circuit/medical/refiller
+	name = "Medical refiller"
+	desc = "A device used to refill gel tubes and organ fixers, that inside or near circuit."
+	complexity = 8
+	inputs = list(
+		"target" = IC_PINTYPE_REF,
+		"source" = IC_PINTYPE_REF
+	)
+	outputs = list(
+		"amount of gel left" = IC_PINTYPE_NUMBER
+	)
+	activators = list("refill" = IC_PINTYPE_PULSE_IN, "refilled" = IC_PINTYPE_PULSE_OUT)
+	spawn_flags = IC_SPAWN_RESEARCH
+	power_draw_per_use = 80
+
+/obj/item/integrated_circuit/medical/refiller/do_work(ord)
+	var/obj/target = get_pin_data_as_type(IC_INPUT, 1)
+	var/obj/source = get_pin_data_as_type(IC_INPUT, 2)
+
+	if(get_dist(src, source) > 1)
+		to_world("eyban")
+		return
+	if(get_dist(src, target) > 1)
+		to_world("yeban")
+		return
+
+	if(istype(target, /obj/item/weapon/organfixer))
+		var/obj/item/weapon/organfixer/OF = target
+		if(istype(source, /obj/item/weapon/organfixer))
+			var/obj/item/stack/medical/advanced/bruise_pack/OF2 = source
+			OF.attackby(OF2, src)
+		else if(istype(source, /obj/structure/geltank))
+			var/obj/structure/geltank/G = source
+			G.attackby(OF, src)
+		else
+			return
+		set_pin_data(IC_OUTPUT, 1, OF.gel_amt)
+	else if(istype(target, /obj/item/stack/medical/advanced))
+		var/obj/item/stack/medical/advanced/A = target
+		if(istype(source, /obj/item/stack/medical/advanced))
+			var/obj/item/stack/medical/advanced/A2 = source
+			A2.refill_from_same(A)
+		else if(istype(source, /obj/structure/geltank))
+			var/obj/structure/geltank/G = source
+			G.attackby(A, src)
+		else
+			return
+		set_pin_data(IC_OUTPUT, 1, A.amount)
 
 	push_data()
 	activate_pin(2)
