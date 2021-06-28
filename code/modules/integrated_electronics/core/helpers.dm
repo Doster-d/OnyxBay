@@ -137,7 +137,9 @@
 		return
 	var/r
 	for(var/i = 1 to length(string))
-		r += ascii2text(text2ascii(string,i) ^ text2ascii(key,((i-1)%length(string))+1))
+		var/j = i % length(key)
+		var/xor = text2ascii(string, i) ^ text2ascii(key, j)
+		r += ascii2text(xor)
 	return r
 
 /// Encodes a string to hex

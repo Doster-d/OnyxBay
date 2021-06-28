@@ -85,29 +85,14 @@
 	activators = list("calculate path" = IC_PINTYPE_PULSE_IN, "on calculated" = IC_PINTYPE_PULSE_OUT,"not calculated" = IC_PINTYPE_PULSE_OUT)
 	spawn_flags = IC_SPAWN_RESEARCH
 	power_draw_per_use = 80
-	// var/obj/item/weapon/card/id/idc
 
 /obj/item/integrated_circuit/smart/advanced_pathfinder/Initialize()
 	.=..()
-	// idc = new(src)
 
 /obj/item/integrated_circuit/smart/advanced_pathfinder/do_work()
 	if(!assembly)
 		activate_pin(3)
 		return
-	// var/Ps = hippie_xor_decrypt()
-
-	// var/list/signature_and_data = splittext(assembly.access_card.access, ":")
-	//
-	// if(signature_and_data.len < 2)
-	// 	return
-	//
-	// var/signature = signature_and_data[1]
-	// var/result = signature_and_data[2]
-	//
-	// if(!check_data_signature(signature, result))
-	// 	activate_pin(3)
-	// 	return
 
 	var/turf/a_loc = get_turf(assembly)
 	var/turf/b_loc = locate(Clamp(get_pin_data(IC_INPUT, 1), 0, world.maxx), Clamp(get_pin_data(IC_INPUT, 2), 0, world.maxy), a_loc.z)
@@ -128,15 +113,6 @@
 		set_pin_data(IC_OUTPUT, 2, Yn)
 		push_data()
 		activate_pin(2)
-
-/obj/item/integrated_circuit/smart/advanced_pathfinder/proc/hippie_xor_decrypt()
-	var/Ps = get_pin_data(IC_INPUT, 4)
-	if(!Ps)
-		return
-	// var/list/Pl = json_decode(XorEncrypt(hextostr(Ps, TRUE), SScircuit.cipherkey))
-	// if(Pl&&islist(Pl))
-	// 	idc.access = Pl
-	return Ps
 
 // - MMI Tank - //
 /obj/item/integrated_circuit/input/mmi_tank

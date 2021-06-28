@@ -129,8 +129,6 @@
 	log_attack("[assembly] [any2ref(assembly)] has fired [installed_gun].", notify_admin = FALSE)
 	return A
 
-/obj/item/integrated_circuit/security/flasher
-
 /obj/item/integrated_circuit/security/microscope
 	name = "Microscope"
 	desc = "Bluat pomogite!"
