@@ -1,16 +1,15 @@
 GLOBAL_VAR_INIT(contract_recon_target_count, 3)
 GLOBAL_LIST_EMPTY(all_contracts)
 GLOBAL_LIST_INIT(contracts_steal_items, list(
-	"the prototype psychoscope" =                       list(CONTRACT_STEAL_SCIENCE, /obj/item/clothing/glasses/psychoscope),
 	"the captain's antique laser gun" =                 list(CONTRACT_STEAL_MILITARY, /obj/item/weapon/gun/energy/captain),
 	"a bluespace rift generator in hand teleporter" =   list(CONTRACT_STEAL_SCIENCE, /obj/item/integrated_circuit/manipulation/bluespace_rift),
 	"an RCD" =                                          list(CONTRACT_STEAL_OPERATION, /obj/item/weapon/rcd),
 	// "a jetpack" =                                    list(CONTRACT_STEAL_OPERATION, /obj/item/weapon/tank/jetpack), // jetpack doesn't stuff in STD, redo STD then uncomment this.
 	"a captain's jumpsuit" =                            list(CONTRACT_STEAL_UNDERPANTS, /obj/item/clothing/under/rank/captain),
 	"a pair of magboots" =                              list(CONTRACT_STEAL_OPERATION, /obj/item/clothing/shoes/magboots),
-	"the [station_name()] blueprints" =                 list(CONTRACT_STEAL_OPERATION, /obj/item/blueprints),
+ 	"the station's blueprints" =                        list(CONTRACT_STEAL_OPERATION, /obj/item/blueprints),
 	// "a nasa voidsuit" =                              list(CONTRACT_STEAL_OPERATION, /obj/item/clothing/suit/space/void),
-	"a sample of slime extract" =                       list(CONTRACT_STEAL_SCIENCE, /obj/item/slime_extract),
+	"a sample of metroid extract" =                     list(CONTRACT_STEAL_SCIENCE, /obj/item/metroid_extract),
 	"a piece of corgi meat" =                           list(CONTRACT_STEAL_OPERATION, /obj/item/weapon/reagent_containers/food/snacks/meat/corgi),
 	"a research director's jumpsuit" =                  list(CONTRACT_STEAL_UNDERPANTS, /obj/item/clothing/under/rank/research_director),
 	"a chief engineer's jumpsuit" =                     list(CONTRACT_STEAL_UNDERPANTS, /obj/item/clothing/under/rank/chief_engineer),
@@ -72,7 +71,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 			var/datum/antagonist/antag = GLOB.all_antag_types_[antag_type]
 			if(antag.is_antagonist(target_mind))
 				var/list/params = reason_list[antag_type]
-				if(params)
+				if(length(params) > 2)
 					var/chance = params[3]
 					if(skip_third_param)
 						chance = 100
@@ -83,6 +82,8 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 					else
 						return_value = TRUE
 					break
+				else
+					return_value = FALSE
 	else
 		return_value = FALSE
 	return return_value
@@ -148,7 +149,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 
 /datum/antag_contract/implant
 	name = "Implant"
-	reward = 14
+	reward = 4
 	intent = CONTRACT_IMPACT_MILITARY
 
 /datum/antag_contract/implant/New(datum/contract_organization/contract_organization, reason, datum/mind/target)
@@ -221,7 +222,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 
 /datum/antag_contract/item/steal
 	name = "Steal"
-	reward = 10
+	reward = 3
 	intent = CONTRACT_IMPACT_OPERATION
 	var/target_desc
 	var/target_type
@@ -279,7 +280,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 
 /datum/antag_contract/item/steal_ai
 	name = "Steal an active AI"
-	reward = 20
+	reward = 7
 	intent = CONTRACT_IMPACT_HIJACK
 	var/target_desc = "a functional AI"
 	var/mob/living/silicon/ai/AI
@@ -306,6 +307,8 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 			return
 		for(var/datum/antag_contract/item/steal_ai/s_AI in GLOB.all_contracts)
 			valid_AIs.Remove(s_AI.AI)
+		if(!length(valid_AIs))
+			return
 		AI = pick(valid_AIs)
 	target_desc = "[target_desc] [AI.name]"
 	create_explain_text("steal <b>[target_desc]<b> and send it via STD (found in <b>Devices and Tools</b>).")
@@ -320,7 +323,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 /datum/antag_contract/item/blood
 	name = "Steal blood samples"
 	unique = TRUE
-	reward = 10
+	reward = 5
 	intent = CONTRACT_IMPACT_OPERATION | CONTRACT_IMPACT_SOCIAL
 	var/count
 
@@ -353,7 +356,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 
 /datum/antag_contract/item/assassinate
 	name = "Assassinate"
-	reward = 8
+	reward = 2 // This is how expensive your life is, fellow NT employee
 	intent = CONTRACT_IMPACT_MILITARY
 	var/target_real_name
 	var/detected_less_tc = FALSE
@@ -451,7 +454,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 			to_chat(M, SPAN("danger", "According to our information, the target ([target_real_name]) specified in the contract is still alive, don't try to deceive us or the consequences will be... Inevitable."))
 		return
 	if(!detected_less_tc)
-		reward = reward * 1.5
+		reward = reward * 2
 	..(close_uplink)
 
 /datum/antag_contract/item/assassinate/on_mob_despawned(datum/mind/M)
@@ -461,7 +464,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 /datum/antag_contract/item/dump
 	name = "Dump"
 	unique = TRUE
-	reward = 8
+	reward = 5
 	intent = CONTRACT_STEAL_OPERATION
 	var/sum
 
@@ -491,7 +494,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 /datum/antag_contract/item/research
 	name = "Steal research"
 	unique = TRUE
-	reward = 6
+	reward = 4
 	intent = CONTRACT_STEAL_SCIENCE
 	var/list/datum/design/targets = list()
 	var/static/counter = 0
@@ -548,7 +551,7 @@ GLOBAL_LIST_INIT(syndicate_factions, list(
 
 /datum/antag_contract/recon
 	name = "Recon"
-	reward = 12
+	reward = 3 // One 2 TC kit is enough to complete two of these.
 	intent = CONTRACT_STEAL_OPERATION
 	var/list/area/targets = list()
 

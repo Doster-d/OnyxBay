@@ -238,7 +238,7 @@
 			if("larva")				M.change_mob_type( /mob/living/carbon/alien/larva , null, null, delmob )
 			if("nymph")				M.change_mob_type( /mob/living/carbon/alien/diona , null, null, delmob )
 			if("human")				M.change_mob_type( /mob/living/carbon/human , null, null, delmob, href_list["species"])
-			if("slime")				M.change_mob_type( /mob/living/carbon/slime , null, null, delmob )
+			if("metroid")				M.change_mob_type( /mob/living/carbon/metroid , null, null, delmob )
 			if("monkey")			M.change_mob_type( /mob/living/carbon/human/monkey , null, null, delmob )
 			if("robot")				M.change_mob_type( /mob/living/silicon/robot , null, null, delmob )
 			if("cat")				M.change_mob_type( /mob/living/simple_animal/cat , null, null, delmob )
@@ -1123,6 +1123,17 @@
 		to_chat(M, "<span class='warning'>You have been sent to the prison station!</span>")
 		log_and_message_admins("sent [key_name_admin(M)] to the prison station.")
 
+	else if(href_list["blind"])
+		if(!check_rights(R_ADMIN))
+			return
+
+		var/mob/M = locate(href_list["blind"])
+		if(!ismob(M) || !M.client)
+			return
+
+		M.client.view = M.client.view == world.view ? -1 : world.view
+		log_and_message_admins("[M.client.view == world.view ? "opened" : "closed"] the game window for [key_name_admin(M)]")
+
 	else if(href_list["tdome1"])
 		if(!check_rights(R_FUN))	return
 
@@ -1249,15 +1260,15 @@
 		log_and_message_admins("AIized [key_name_admin(H)]!")
 		H.AIize()
 
-	else if(href_list["makeslime"])
+	else if(href_list["makemetroid"])
 		if(!check_rights(R_SPAWN))	return
 
-		var/mob/living/carbon/human/H = locate(href_list["makeslime"])
+		var/mob/living/carbon/human/H = locate(href_list["makemetroid"])
 		if(!istype(H))
 			to_chat(usr, "This can only be used on instances of type /mob/living/carbon/human")
 			return
 
-		usr.client.cmd_admin_slimeize(H)
+		usr.client.cmd_admin_metroidize(H)
 
 	else if(href_list["makerobot"])
 		if(!check_rights(R_SPAWN))	return
@@ -1652,17 +1663,6 @@
 			to_chat(usr, "This can only be used on instances of type /mob.")
 			return
 		show_traitor_panel(M)
-
-	else if(href_list["skillpanel"])
-		if(!check_rights(R_INVESTIGATE))
-			return
-
-		if(GAME_STATE < RUNLEVEL_GAME)
-			alert("The game hasn't started yet!")
-			return
-
-		var/mob/M = locate(href_list["skillpanel"])
-		show_skills(M)
 
 	else if(href_list["create_object"])
 		if(!check_rights(R_SPAWN))	return

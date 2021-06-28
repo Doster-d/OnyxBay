@@ -399,6 +399,9 @@ GLOBAL_LIST_INIT(compbeep_sound,list('sound/effects/compbeep1.ogg','sound/effect
 GLOBAL_LIST_INIT(radio_sound,list('sound/signals/radio1.ogg','sound/signals/radio2.ogg','sound/signals/radio3.ogg',
 									'sound/signals/radio4.ogg','sound/signals/radio5.ogg'))
 
+GLOBAL_LIST_INIT(throwing_sound, list('sound/effects/throwing/swoosh1.ogg', 'sound/effects/throwing/swoosh2.ogg',
+									'sound/effects/throwing/swoosh3.ogg', 'sound/effects/throwing/swoosh4.ogg'))
+
 GLOBAL_LIST_INIT(distant_movement_sound,list('sound/effects/footstep/distant/distant1.ogg','sound/effects/footstep/distant/distant2.ogg','sound/effects/footstep/distant/distant3.ogg',
 											'sound/effects/footstep/distant/distant4.ogg','sound/effects/footstep/distant/distant5.ogg','sound/effects/footstep/distant/distant6.ogg',
 											'sound/effects/footstep/distant/distant7.ogg','sound/effects/footstep/distant/distant8.ogg','sound/effects/footstep/distant/distant9.ogg',
@@ -544,10 +547,13 @@ var/const/FALLOFF_SOUNDS = 0.5
 
 /client/proc/playtitlemusic()
 	if(get_preference_value(/datum/client_preference/play_lobby_music) == GLOB.PREF_YES)
-		GLOB.lobby_music.play_to(src)
+		if(isnewplayer(mob))
+			GLOB.lobby_music.play_to(src)
+	else
+		sound_to(src, sound(null, repeat = 0, wait = 0, volume = 85, channel = 1))
 
 /proc/get_rand_frequency()
-	return rand(32000, 55000) //Frequency stuff only works with 45kbps oggs.
+	return rand(32000, 55000) // Frequency stuff only works with 45kbps oggs.
 
 /proc/get_sfx(soundin)
 	if(istext(soundin))
@@ -628,6 +634,7 @@ var/const/FALLOFF_SOUNDS = 0.5
 			if ("device_trr")			soundin = pick(GLOB.device_trr_sound)
 			if ("compbeep")				soundin = pick(GLOB.compbeep_sound)
 			if ("radio")				soundin = pick(GLOB.radio_sound)
+			if ("throwing")             soundin = pick(GLOB.throwing_sound)
 			if ("distant_movement")		soundin = pick(GLOB.distant_movement_sound)
 			if ("medical_beep")			soundin = pick(GLOB.medical_beep_sound)
 			if ("outpost_ambient")		soundin = pick(GLOB.outpost_ambient_sound)
