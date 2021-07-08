@@ -611,14 +611,11 @@
 	power_draw_per_use = 80
 
 /obj/item/integrated_circuit/medical/refiller/do_work(ord)
-	var/obj/target = get_pin_data_as_type(IC_INPUT, 1)
-	var/obj/source = get_pin_data_as_type(IC_INPUT, 2)
+	var/obj/target = get_pin_data_as_type(IC_INPUT, 1, /obj)
+	var/obj/source = get_pin_data_as_type(IC_INPUT, 2, /obj)
 
-	if(get_dist(src, source) > 1)
-		to_world("eyban")
-		return
-	if(get_dist(src, target) > 1)
-		to_world("yeban")
+	// Check for invalid input.
+	if(!check_target(source) || !check_target(target))
 		return
 
 	if(istype(target, /obj/item/weapon/organfixer))
