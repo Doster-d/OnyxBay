@@ -137,7 +137,7 @@
 		return
 	var/r
 	for(var/i = 1 to length(string))
-		var/j = i % length(key)
+		var/j = (i - 1) % length(string) + 1
 		var/xor = text2ascii(string, i) ^ text2ascii(key, j)
 		r += ascii2text(xor)
 	return r
