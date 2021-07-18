@@ -47,25 +47,9 @@
 
 	animate_tail_stop()
 
-	//Handle brain slugs.
-	var/obj/item/organ/external/head = get_organ(BP_HEAD)
-	var/mob/living/simple_animal/borer/B
-
-	if(head)		//TODO: find out what will happen to slug with <-- this check
-		for(var/I in head.implants)
-			if(istype(I,/mob/living/simple_animal/borer))
-				B = I
-		if(B)
-			if(!B.ckey && ckey && B.controlling)
-				B.ckey = ckey
-				B.controlling = 0
-			if(B.host_brain.ckey)
-				ckey = B.host_brain.ckey
-				B.host_brain.ckey = null
-				B.host_brain.SetName("host brain")
-				B.host_brain.real_name = "host brain"
-
-			verbs -= /mob/living/carbon/proc/release_control
+	// handle organs special act
+	for(var/obj/item/organ/O in organs)
+		O.on_owner_death()
 
 	callHook("death", list(src, gibbed))
 

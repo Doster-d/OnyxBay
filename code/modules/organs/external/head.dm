@@ -29,6 +29,25 @@
 
 	var/skull_path = /obj/item/weapon/skull
 
+/obj/item/organ/external/head/on_owner_death()
+	//Handle brain slugs.
+	var/mob/living/simple_animal/borer/B
+	for(var/I in head.implants)
+		if(istype(I,/mob/living/simple_animal/borer))
+			B = I
+			break
+	if(B)
+		if(!B.ckey && ckey && B.controlling)
+			B.ckey = ckey
+			B.controlling = 0
+		if(B.host_brain.ckey)
+			owner.ckey = B.host_brain.ckey
+			B.host_brain.ckey = null
+			B.host_brain.SetName("host brain")
+			B.host_brain.real_name = "host brain"
+
+		owner.verbs -= /mob/living/carbon/proc/release_control
+
 /obj/item/organ/external/head/organ_eaten(mob/user)
 	. = ..()
 	var/obj/item/weapon/skull/SK = new /obj/item/weapon/skull(get_turf(src))

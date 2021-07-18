@@ -106,6 +106,9 @@ var/list/organ_cache = list()
 	if(owner && vital)
 		owner.death()
 
+/obj/item/organ/proc/on_owner_death()
+	return
+
 /obj/item/organ/Process()
 	if(loc != owner)
 		owner = null
