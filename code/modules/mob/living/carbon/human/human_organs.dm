@@ -9,8 +9,12 @@
 	if(E) . = E.name
 
 /mob/living/carbon/human/proc/restore_limb(limb_type, show_message = FALSE)	//only for changling for now
+	var/list/child_types = list()
 	var/obj/item/organ/external/E = organs_by_name[limb_type]
 	if(E && E.organ_tag != BP_HEAD && !E.vital && !E.is_usable())	//Skips heads and vital bits...
+		for(var/obj/item/organ/external/child in E.children)
+			if(!child.is_stump())
+				child_types.Add(child.type)
 		E.removed()//...because no one wants their head to explode to make way for a new one.
 		qdel(E)
 		E= null
@@ -26,7 +30,10 @@
 		if (show_message)
 			to_chat(src, "<span class='danger'>With a shower of fresh blood, a new [O.name] forms.</span>")
 			visible_message("<span class='danger'>With a shower of fresh blood, a length of biomass shoots from [src]'s [O.amputation_point], forming a new [O.name]!</span>")
-		return 1
+		child_types = uniquelist(child_types)
+		for(var/child_type in child_types)
+			restore_limb(child_type, show_message)
+		return TRUE
 	else if (E.damage > 0 || E.status & (ORGAN_BROKEN) || E.status & (ORGAN_ARTERY_CUT))
 		E.mend_fracture()
 		E.status &= ~ORGAN_ARTERY_CUT
