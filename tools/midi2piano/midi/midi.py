@@ -376,7 +376,7 @@ per second and one tick per millisecond.  This makes it
 hard to retrieve any information about beats or barlines,
 but it does make it easy to mix different scores together.
 '''
-    if old_opus == None:
+    if old_opus is None:
         return [1000,[],]
     try:
         old_tpq  = int(old_opus[0])
@@ -416,11 +416,11 @@ The type of track (opus or score) is autodetected.
 def grep(score=None, channels=None):
     r'''Returns a "score" containing only the channels specified
 '''
-    if score == None:
+    if score is None:
         return [1000,[],]
     ticks = score[0]
     new_score = [ticks,]
-    if channels == None:
+    if channels is None:
         return new_score
     channels = set(channels)
     global Event2channelindex
@@ -440,7 +440,7 @@ def grep(score=None, channels=None):
 def play_score(score=None):
     r'''Converts the "score" to midi, and feeds it into 'aplaymidi -'
 '''
-    if score == None:
+    if score is None:
         return
     import subprocess
     pipe = subprocess.Popen(['aplaymidi','-'], stdin=subprocess.PIPE)
@@ -474,7 +474,7 @@ also occurs if "start_time" is negative, and is also the
 default if neither "shift" nor "start_time" are specified.
 '''
     #_warn('tracks='+str(tracks))
-    if score == None or len(score) < 2:
+    if score is None or len(score) < 2:
         return [1000, [],]
     new_score = [score[0],]
     my_type = score_type(score)
@@ -484,18 +484,18 @@ default if neither "shift" nor "start_time" are specified.
         _warn("timeshift: opus format is not supported\n")
         # _clean_up_scores()  6.2; doesn't exist! what was it supposed to do?
         return new_score
-    if not (shift == None) and not (start_time == None):
+    if not (shift is None) and not (start_time is None):
         _warn("timeshift: shift and start_time specified: ignoring shift\n")
         shift = None
-    if shift == None:
-        if (start_time == None) or (start_time < 0):
+    if shift is None:
+        if (start_time is None) or (start_time < 0):
             start_time = 0
         # shift = start_time - from_time
 
     i = 1   # ignore first element (ticks)
     tracks = set(tracks)  # defend against tuples and lists
     earliest = 1000000000
-    if not (start_time == None) or shift < 0:  # first find the earliest event
+    if not (start_time is None) or shift < 0:  # first find the earliest event
         while i < len(score):
             if len(tracks) and not ((i-1) in tracks):
                 i += 1
@@ -508,7 +508,7 @@ default if neither "shift" nor "start_time" are specified.
             i += 1
     if earliest > 999999999:
         earliest = 0
-    if shift == None:
+    if shift is None:
         shift = start_time - earliest
     elif (earliest + shift) < 0:
         start_time = 0
@@ -547,11 +547,11 @@ at "end_time" ticks (or at the end if "end_time" is not supplied).
 If the set "tracks" is specified, only those tracks will
 be returned.
 '''
-    if score == None or len(score) < 2:
+    if score is None or len(score) < 2:
         return [1000, [],]
-    if start_time == None:  # as of 4.2 start_time is recommended
+    if start_time is None:  # as of 4.2 start_time is recommended
         start_time = start  # start is legacy usage
-    if end_time == None:    # likewise
+    if end_time is None:    # likewise
         end_time = end
     new_score = [score[0],]
     my_type = score_type(score)
@@ -600,7 +600,7 @@ be returned.
 def score_type(opus_or_score=None):
     r'''Returns a string, either 'opus' or 'score' or ''
 '''
-    if opus_or_score == None or str(type(opus_or_score)).find('list')<0 or len(opus_or_score) < 2:
+    if opus_or_score is None or str(type(opus_or_score)).find('list')<0 or len(opus_or_score) < 2:
         return ''
     i = 1   # ignore first element
     while i < len(opus_or_score):
@@ -734,7 +734,7 @@ pitch_range_sum (sum over tracks of the pitch_ranges),
     pitch_range_sum = 0   # u pitch-ranges of each track
     pitch_range_by_track = []
     is_a_score = True
-    if opus_or_score == None:
+    if opus_or_score is None:
         return {'bank_select':[], 'channels_by_track':[], 'channels_total':[],
          'general_midi_mode':[], 'ntracks':0, 'nticks':0,
          'num_notes_by_channel':dict([]),
@@ -1156,9 +1156,9 @@ The options:
   'exclusive_event_callback' is a coderef
 '''
     trackdata = bytearray(trackdata)
-    if exclude == None:
+    if exclude is None:
         exclude = []
-    if include == None:
+    if include is None:
         include = []
     if include and not exclude:
         exclude = All_events
