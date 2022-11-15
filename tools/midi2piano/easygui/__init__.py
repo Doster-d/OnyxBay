@@ -496,7 +496,7 @@ def integerbox(msg=""
 
     while 1:
         reply = enterbox(msg, title, str(default), image=image, root=root)
-        if reply == None: return None
+        if reply is None: return None
 
         try:
             reply = int(reply)
@@ -816,8 +816,8 @@ def __fillablebox(msg
     global boxRoot, __enterboxText, __enterboxDefaultText
     global cancelButton, entryWidget, okButton
 
-    if title == None: title == ""
-    if default == None: default = ""
+    if title is None: title == ""
+    if default is None: default = ""
     __enterboxDefaultText = default
     __enterboxText        = __enterboxDefaultText
 
@@ -1047,7 +1047,7 @@ def __choicebox(msg
     lines_to_show = min(len(choices), 20)
     lines_to_show = 20
 
-    if title == None: title = ""
+    if title is None: title = ""
 
     # Initialize __choiceboxResults
     # This is the value that will be returned if the user clicks the close icon
@@ -1320,8 +1320,8 @@ def exceptionbox(msg=None, title=None):
     Note that you do not need to (and cannot) pass an exception object
     as an argument.  The latest exception will automatically be used.
     """
-    if title == None: title = "Error Report"
-    if msg == None:
+    if title is None: title = "Error Report"
+    if msg is None:
         msg = "An error (exception) has occurred in the program."
 
     codebox(msg, title, exception_format())
@@ -1360,8 +1360,8 @@ def textbox(msg=""
     displayed in the textbox.
     """
 
-    if msg == None: msg = ""
-    if title == None: title = ""
+    if msg is None: msg = ""
+    if title is None: title = ""
 
     global boxRoot, __replyButtonText, __widgetTexts, buttonsFrame
     global rootWindowPosition
@@ -2153,7 +2153,7 @@ def egdemo():
 
             # make sure that none of the fields was left blank
             while 1:
-                if fieldValues == None: break
+                if fieldValues is None: break
                 errmsg = ""
                 for i in range(len(fieldNames)):
                     if fieldValues[i].strip() == "":
@@ -2172,7 +2172,7 @@ def egdemo():
 
             # make sure that none of the fields was left blank
             while 1:
-                if fieldValues == None: break
+                if fieldValues is None: break
                 errmsg = ""
                 for i in range(len(fieldNames)):
                     if fieldValues[i].strip() == "":
