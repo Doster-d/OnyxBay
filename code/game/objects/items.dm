@@ -54,7 +54,7 @@
 	var/slowdown_per_slot[slot_last] // How much clothing is slowing you down. This is an associative list: item slot - slowdown
 	var/slowdown_accessory // How much an accessory will slow you down when attached to a worn article of clothing.
 	var/canremove = 1 //Mostly for Ninja code at this point but basically will not allow the item to be removed if set to 0. /N
-	var/candrop = 1
+	var/candrop = 1 //Mostly for the fake armblade code. Prevents drop_from_inventory(), making the wielder unable to drop it at all unless forced.
 	var/list/armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	var/list/allowed = null //suit storage stuff.
 	var/obj/item/device/uplink/hidden_uplink = null // All items can have an uplink hidden inside, just remember to add the triggers.
@@ -82,6 +82,8 @@
 
 	var/pickup_sound = null
 
+	var/ear_protection = 0
+
 /obj/item/New()
 	..()
 	if(randpixel && (!pixel_x && !pixel_y) && isturf(loc)) //hopefully this will prevent us from messing with mapper-set pixel_x/y
@@ -89,25 +91,20 @@
 		pixel_y = rand(-randpixel, randpixel)
 
 /obj/item/Destroy()
-	qdel(hidden_uplink)
-	hidden_uplink = null
+	QDEL_NULL(hidden_uplink)
 	if(ismob(loc))
 		var/mob/m = loc
 		m.drop_from_inventory(src)
-		m.update_inv_r_hand()
-		m.update_inv_l_hand()
-		src.loc = null
 	if(maptext)
 		maptext = ""
+
 	if(istype(src.loc, /obj/item/weapon/storage))
-		var/obj/item/weapon/storage/storage = src.loc
-		storage.prepare_ui()
-		var/datum/storage_ui/s_ui = storage.storage_ui
-		if(s_ui)
-			s_ui.on_pre_remove(usr, src)
-		storage.contents -= src
-		storage.update_ui_after_item_removal()
-	return ..()
+		var/obj/item/weapon/storage/storage = loc // some ui cleanup needs to be done
+		storage.on_item_pre_deletion(src) // must be done before deletion
+		. = ..()
+		storage.on_item_post_deletion() // must be done after deletion
+	else
+		return ..()
 
 /obj/item/device
 	icon = 'icons/obj/device.dmi'
@@ -233,16 +230,16 @@
 
 	return ..(user, "", desc_comp)
 
-/obj/item/attack_hand(mob/user as mob)
-	if (!user)
+/obj/item/attack_hand(mob/user)
+	if(!user)
 		return
-	if (anchored)
+	if(anchored)
 		return ..()
-	if(istype(user, /mob/living/carbon/human/xenos))
-		to_chat(user, SPAN("notice", "You're not smart enough to do that!"))
-		return
-	if (hasorgans(user))
+	if(hasorgans(user))
 		var/mob/living/carbon/human/H = user
+		if(H.IsAdvancedToolUser(TRUE) == FALSE)
+			to_chat(user, SPAN("notice", "I'm not smart enough to do that!"))
+			return
 		var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
 		if (user.hand)
 			temp = H.organs_by_name[BP_L_HAND]
@@ -281,7 +278,7 @@
 			pixel_y = 0
 	return
 
-/obj/item/attack_ai(mob/user as mob)
+/obj/item/attack_ai(mob/user)
 	if (istype(src.loc, /obj/item/weapon/robot_module))
 		//If the item is part of a cyborg module, equip it
 		if(!isrobot(user))
@@ -290,7 +287,7 @@
 		R.activate_module(src)
 		R.hud_used.update_robot_modules_display()
 
-/obj/item/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/attackby(obj/item/weapon/W, mob/user)
 	if(istype(W, /obj/item/weapon/storage))
 		var/obj/item/weapon/storage/S = W
 		if(S.use_to_pickup)
@@ -300,14 +297,14 @@
 			else if(S.can_be_inserted(src, user))
 				S.handle_item_insertion(src)
 
-/obj/item/proc/talk_into(mob/M as mob, text)
+/obj/item/proc/talk_into(mob/M, text)
 	return
 
-/obj/item/proc/moved(mob/user as mob, old_loc as turf)
+/obj/item/proc/moved(mob/user, old_loc)
 	return
 
 // apparently called whenever an item is removed from a slot, container, or anything else.
-/obj/item/proc/dropped(mob/user as mob)
+/obj/item/proc/dropped(mob/user)
 	if(randpixel)
 		pixel_z = randpixel //an idea borrowed from some of the older pixel_y randomizations. Intended to make items appear to drop at a character
 
@@ -323,15 +320,15 @@
 	return
 
 // called when this item is removed from a storage item, which is passed on as S. The loc variable is already set to the new destination before this is called.
-/obj/item/proc/on_exit_storage(obj/item/weapon/storage/S as obj)
+/obj/item/proc/on_exit_storage(obj/item/weapon/storage/S)
 	return
 
 // called when this item is added into a storage item, which is passed on as S. The loc variable is already set to the storage item.
-/obj/item/proc/on_enter_storage(obj/item/weapon/storage/S as obj)
+/obj/item/proc/on_enter_storage(obj/item/weapon/storage/S)
 	return
 
 // called when "found" in pockets and storage items. Returns 1 if the search should end.
-/obj/item/proc/on_found(mob/finder as mob)
+/obj/item/proc/on_found(mob/finder)
 	return
 
 // called after an item is placed in an equipment slot
@@ -375,7 +372,7 @@ var/list/global/slot_flags_enumeration = list(
 //Set disable_warning to 1 if you wish it to not give you outputs.
 //Should probably move the bulk of this into mob code some time, as most of it is related to the definition of slots and not item-specific
 //set force to ignore blocking overwear and occupied slots
-/obj/item/proc/mob_can_equip(M as mob, slot, disable_warning = 0, force = 0)
+/obj/item/proc/mob_can_equip(M, slot, disable_warning = 0, force = 0)
 	if(!slot) return 0
 	if(!M) return 0
 
@@ -473,6 +470,9 @@ var/list/global/slot_flags_enumeration = list(
 
 	return 1
 
+/obj/item/proc/return_item()
+	return src
+
 /obj/item/proc/mob_can_unequip(mob/M, slot, disable_warning = 0)
 	if(!slot) return 0
 	if(!M) return 0
@@ -527,57 +527,38 @@ var/list/global/slot_flags_enumeration = list(
 //For non-projectile attacks this usually means the attack is blocked.
 //Otherwise should return 0 to indicate that the attack is not affected in any way.
 /obj/item/proc/handle_shield(mob/user, damage, atom/damage_source = null, mob/attacker = null, def_zone = null, attack_text = "the attack")
-
-	if(!user.blocking) return 0 // We weren't ready bruh
-	if(istype(damage_source,/obj/item/projectile))
+	if(!user.blocking)
+		return 0 // We weren't ready bruh
+	if(user.incapacitated(INCAPACITATION_DISABLED))
+		return 0
+	if(istype(damage_source, /obj/item/projectile))
 		var/obj/item/projectile/P = damage_source
 		if(!P.blockable)
 			return 0
-		if(src.mod_shield >= 2.5)
-			// some effects here
-			var/datum/effect/effect/system/spark_spread/spark_system = new /datum/effect/effect/system/spark_spread()
-			spark_system.set_up(3, 0, user.loc)
-			spark_system.start()
-			if(istype(P,/obj/item/projectile/beam))
-				visible_message(SPAN("warning", "\The [user] dissolves [P] with their [src.name]!"))
-				proj_poise_drain(user, P)
-				return PROJECTILE_FORCE_BLOCK // Beam reflections code is kinda messy, I ain't gonna touch it. ~Toby
-			else if(P.starting)
-				visible_message(SPAN("warning", "\The [user] reflects [P] with their [src.name]!"))
-
-				// Find a turf near or on the original location to bounce to
-				var/new_x = P.starting.x + rand(-2,2)
-				var/new_y = P.starting.y + rand(-2,2)
-				var/turf/curloc = get_turf(user)
-
-				// redirect the projectile
-				P.redirect(new_x, new_y, curloc, user)
-				proj_poise_drain(user, P)
-				return PROJECTILE_CONTINUE // complete projectile permutation
-		else if(src.mod_shield >= 1.3)
-			if(P.armor_penetration > (25*src.mod_shield)-5)
-				visible_message(SPAN("warning", "\The [user] tries to block [P] with their [src.name]. <b>Not the best idea.</b>"))
+		if(mod_shield >= 1.3)
+			if(P.armor_penetration > (25 * mod_shield) - 5)
+				visible_message(SPAN("warning", "\The [user] tries to block [P] with their [name]. <b>Not the best idea.</b>"))
 				return 0
-			visible_message(SPAN("warning", "\The [user] blocks [P] with their [src.name]!"))
+			visible_message(SPAN("warning", "\The [user] blocks [P] with their [name]!"))
 			proj_poise_drain(user, P, TRUE)
 			return PROJECTILE_FORCE_BLOCK
 	return 0
 
 /obj/item/proc/proj_poise_drain(mob/user, obj/item/projectile/P, weak_shield = FALSE)
-	if(istype(user,/mob/living/carbon/human))
+	if(istype(user, /mob/living/carbon/human))
 		var/mob/living/carbon/human/H = user
-		var/poise_dmg = P.damage/(src.mod_shield*2.5)
+		var/poise_dmg = P.damage / (mod_shield * 2.5)
 		if(weak_shield && P.damage_type == BRUTE)
-			poise_dmg = P.damage+(P.agony/1.5)/(src.mod_shield*2.5)
+			poise_dmg = P.damage + (P.agony / 1.5) / (mod_shield * 2.5)
 		if(src != H.get_active_hand())
 			poise_dmg *= 2
-		H.poise -= poise_dmg
+		H.damage_poise(poise_dmg)
 		if(H.poise < poise_dmg)
 			shot_out(H, P)
 
 /obj/item/proc/shot_out(mob/living/carbon/human/H, obj/item/projectile/P, msg = "shot", dist = 3) // item gets shot out of one's hands w/ a projectile
 	H.useblock_off()
-	H.poise -= 10
+	H.damage_poise(10)
 	if(!canremove)
 		visible_message(SPAN("warning", "[H] blocks [P] with \the [src]!"))
 		return
@@ -594,9 +575,10 @@ var/list/global/slot_flags_enumeration = list(
 			throw_at(get_edge_target_turf(src,pick(GLOB.alldirs)),rand(1,dist),1)
 		if(!strong_knock)
 			H.visible_message(SPAN("warning", "[H]'s [src] flies off!"))
-			return
+			return TRUE
 	H.visible_message(SPAN("warning", "[H] falls down, unable to keep balance!"))
 	H.apply_effect(3, WEAKEN, 0)
+	return canremove ? TRUE : FALSE
 
 /obj/item/proc/get_loc_turf()
 	var/atom/L = loc
@@ -604,7 +586,7 @@ var/list/global/slot_flags_enumeration = list(
 		L = L.loc
 	return loc
 
-/obj/item/proc/eyestab(mob/living/carbon/M as mob, mob/living/carbon/user as mob)
+/obj/item/proc/eyestab(mob/living/carbon/M, mob/living/carbon/user)
 
 	var/mob/living/carbon/human/H = M
 	if(istype(H))
@@ -686,7 +668,7 @@ var/list/global/slot_flags_enumeration = list(
 		blood_overlay.color = COLOR_LUMINOL
 		update_icon()
 
-/obj/item/add_blood(mob/living/carbon/human/M as mob)
+/obj/item/add_blood(mob/living/carbon/human/M)
 	if (!..())
 		return 0
 
@@ -782,7 +764,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	user.visible_message("\The [user] peers through [zoomdevicename ? "the [zoomdevicename] of [src]" : "[src]"].")
 
 	GLOB.destroyed_event.register(src, src, /obj/item/proc/unzoom)
-	GLOB.moved_event.register(src, src, /obj/item/proc/unzoom)
+	GLOB.moved_event.register(src, src, /obj/item/proc/zoom_move)
 	GLOB.dir_set_event.register(src, src, /obj/item/proc/unzoom)
 	GLOB.item_unequipped_event.register(src, src, /obj/item/proc/zoom_drop)
 	GLOB.stat_set_event.register(user, src, /obj/item/proc/unzoom)
@@ -790,13 +772,18 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 /obj/item/proc/zoom_drop(obj/item/I, mob/user)
 	unzoom(user)
 
+/obj/item/proc/zoom_move(atom/movable/AM)
+	if(ismob(AM.loc))
+		var/mob/M = AM.loc
+		unzoom(M)
+
 /obj/item/proc/unzoom(mob/user)
 	if(!zoom)
 		return
 	zoom = 0
 
 	GLOB.destroyed_event.unregister(src, src, /obj/item/proc/unzoom)
-	GLOB.moved_event.unregister(src, src, /obj/item/proc/unzoom)
+	GLOB.moved_event.unregister(src, src, /obj/item/proc/zoom_move)
 	GLOB.dir_set_event.unregister(src, src, /obj/item/proc/unzoom)
 	GLOB.item_unequipped_event.unregister(src, src, /obj/item/proc/zoom_drop)
 

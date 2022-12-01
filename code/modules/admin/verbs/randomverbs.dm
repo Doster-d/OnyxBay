@@ -93,7 +93,7 @@
 		to_chat(src, "Some accounts did not have proper ages set in their clients.  This function requires database to be present")
 
 	if(msg != "")
-		src << browse(msg, "window=Player_age_check")
+		show_browser(src, msg, "window=Player_age_check")
 	else
 		to_chat(src, "No matches for that age range found.")
 
@@ -217,7 +217,7 @@
 	message_admins("[key_name_admin(usr)] has toggled [key_name_admin(M)]'s nodamage to [(M.status_flags & GODMODE) ? "On" : "Off"]", 1)
 	feedback_add_details("admin_verb","GOD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-proc/cmd_admin_mute(mob/M as mob, mute_type)
+/proc/cmd_admin_mute(mob/M, mute_type)
 	if(!usr || !usr.client)
 		return
 	if(!usr.client.holder)
@@ -401,10 +401,10 @@ Ccomp's first proc.
 	message_admins("Admin [key_name_admin(usr)] has [action] on joining the round if they use AntagHUD", 1)
 
 /*
-If a guy was gibbed and you want to revive him, this is a good way to do so.
-Works kind of like entering the game with a new character. Character receives a new mind if they didn't have one.
-Traitors and the like can also be revived with the previous role mostly intact.
-/N */
+	If a guy was gibbed and you want to revive him, this is a good way to do so.
+	Works kind of like entering the game with a new character. Character receives a new mind if they didn't have one.
+	Traitors and the like can also be revived with the previous role mostly intact.
+ */
 /client/proc/respawn_character()
 	set category = "Special Verbs"
 	set name = "Respawn Character"
@@ -434,12 +434,12 @@ Traitors and the like can also be revived with the previous role mostly intact.
 
 	if(record_found)//If they have a record we can determine a few things.
 		new_character.real_name = record_found.get_name()
-		new_character.gender = record_found.get_sex()
+		new_character.gender = lowertext(record_found.get_sex())
 		new_character.age = record_found.get_age()
 		new_character.b_type = record_found.get_bloodtype()
 	else
 		new_character.gender = pick(MALE,FEMALE)
-		var/datum/preferences/A = new()
+		var/datum/preferences/A = new(G_found.client)
 		A.randomize_appearance_and_body_for(new_character)
 		new_character.real_name = G_found.real_name
 
@@ -479,11 +479,14 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	else
 		job_master.EquipRank(new_character, new_character.mind.assigned_role, 1)
 
+	var/datum/job/job = job_master.GetJob(new_character.mind.assigned_role)
+
 	//Announces the character on all the systems, based on the record.
 	if(!issilicon(new_character))//If they are not a cyborg/AI.
 		if(!record_found && !player_is_antag(new_character.mind, only_offstation_roles = 1)) //If there are no records for them. If they have a record, this info is already in there. MODE people are not announced anyway.
 			if(alert(new_character,"Would you like an active AI to announce this character?",,"No","Yes")=="Yes")
-				call(/proc/AnnounceArrival)(new_character, new_character.mind.assigned_role)
+				var/datum/spawnpoint/arrivals/spawnpoint = new()
+				call(/proc/AnnounceArrival)(new_character.real_name, job, spawnpoint)
 
 	log_and_message_admins("has respawned [player_key] as [new_character.real_name].")
 
@@ -837,7 +840,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	set category = "Server"
 	set name = "Toggle random events on/off"
 
-	set desc = "Toggles random events such as meteors, black holes, blob (but not space dust) on/off"
+	set desc = "Toggles random events such as meteors, black holes on/off"
 	if(!check_rights(R_SERVER))	return
 
 	if(!config.allow_random_events)

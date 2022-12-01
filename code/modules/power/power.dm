@@ -193,7 +193,7 @@
 
 //remove the old powernet and replace it with a new one throughout the network.
 /proc/propagate_network(obj/O, datum/powernet/PN)
-	//world.log << "propagating new network"
+	//to_world_log("propagating new network")
 	var/list/worklist = list()
 	var/list/found_machines = list()
 	var/index = 1
@@ -327,9 +327,3 @@
 	else if (istype(power_source, /obj/item/weapon/cell))
 		cell.use(drained_energy)
 	return drained_energy
-
-/obj/machinery/power/blob_act(destroy, obj/effect/blob/source)
-	if (stat & BROKEN)
-		return
-
-	set_broken(TRUE)

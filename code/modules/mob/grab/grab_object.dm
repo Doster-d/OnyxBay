@@ -96,25 +96,37 @@
 		if(!QDELETED(src))
 			qdel(src)
 
-/obj/item/grab/proc/can_grab()
-
+/obj/item/grab/proc/is_eligible()
 	// can't grab non-carbon/human/'s
 	if(!istype(affecting))
-		return 0
+		return FALSE
 
 	if(assailant.anchored || affecting.anchored)
-		return 0
+		return FALSE
 
 	if(!assailant.Adjacent(affecting))
-		return 0
+		return FALSE
+
+	if(assailant.buckled || affecting.buckled)
+		return FALSE
+
+	return TRUE
+
+/obj/item/grab/proc/can_grab()
+	if(!is_eligible())
+		return FALSE
+
+	if(length(affecting.grabbed_by))
+		to_chat(assailant, SPAN("notice", "Someone already grabbed [affecting]!"))
+		return FALSE
 
 	for(var/obj/item/grab/G in affecting.grabbed_by)
 		if(G.assailant == assailant && G.target_zone == target_zone)
 			var/obj/O = G.get_targeted_organ()
-			to_chat(assailant, "<span class='notice'>You already grabbed [affecting]'s [O.name].</span>")
-			return 0
+			to_chat(assailant, SPAN("notice", "You already grabbed [affecting]'s [O.name]."))
+			return FALSE
 
-	return 1
+	return TRUE
 
 // This is for all the sorts of things that need to be checked for pretty much every
 // grab made. Feel free to override it but it stops a lot of situations that could
@@ -147,9 +159,7 @@
 
 // Returns the organ of the grabbed person that the grabber is targeting
 /obj/item/grab/proc/get_targeted_organ()
-	if(!affecting)
-		return
-	return (affecting.get_organ(target_zone))
+	return (affecting?.get_organ(target_zone))
 
 /obj/item/grab/proc/resolve_item_attack(mob/living/M, obj/item/I, target_zone)
 	if((M && ishuman(M)) && I)
@@ -220,6 +230,15 @@
 
 /obj/item/grab/proc/reset_position()
 	current_grab.reset_position(src)
+
+/obj/item/grab/proc/has_hold_on_organ(obj/item/organ/external/O)
+	if(!O)
+		return FALSE
+
+	if(get_targeted_organ() == O)
+		return TRUE
+
+	return FALSE
 
 /*
 	This section is for the simple procs used to return things from current_grab.

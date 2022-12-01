@@ -11,6 +11,7 @@
 	density = 1
 	can_atmos_pass = ATMOS_PASS_PROC
 	layer = CLOSED_DOOR_LAYER
+	hitby_sound = 'sound/effects/metalhit2.ogg'
 	var/open_layer = OPEN_DOOR_LAYER
 	var/closed_layer = CLOSED_DOOR_LAYER
 
@@ -31,7 +32,7 @@
 	var/block_air_zones = 1 //If set, air zones cannot merge across the door even when it is opened.
 	//Multi-tile doors
 	var/width = 1
-
+	var/tryingToLock = FALSE // for autoclosing
 	// turf animation
 	var/atom/movable/overlay/c_animation = null
 
@@ -163,17 +164,13 @@
 		take_damage(min(damage, 100))
 
 
-
-/obj/machinery/door/hitby(AM as mob|obj, speed=5)
-
+/obj/machinery/door/hitby(atom/movable/AM, speed = 5, nomsg = FALSE)
 	..()
-	visible_message("<span class='danger'>[src.name] was hit by [AM].</span>")
 	var/tforce = 0
 	if(ismob(AM))
 		tforce = 15 * (speed/5)
 	else
 		tforce = AM:throwforce * (speed/5)
-	playsound(src.loc, hitsound, 100, 1)
 	take_damage(tforce)
 	return
 
@@ -367,6 +364,7 @@
 
 
 /obj/machinery/door/proc/open(forced = 0)
+	var/wait = normalspeed ? 150 : 5
 	if(!can_open(forced))
 		return
 	operating = 1
@@ -385,17 +383,16 @@
 	operating = 0
 
 	if(autoclose)
-		addtimer(CALLBACK(src, .close), next_close_time(), TIMER_UNIQUE|TIMER_OVERRIDE)
+		addtimer(CALLBACK(src, .proc/close), wait, TIMER_UNIQUE|TIMER_OVERRIDE)
 
 	return 1
 
-/obj/machinery/door/proc/next_close_time()
-	return normalspeed ? 150 : 5
-
 /obj/machinery/door/proc/close(forced = 0)
+	var/wait = normalspeed ? 150 : 5
 	if(!can_close(forced))
 		if(autoclose)
-			addtimer(CALLBACK(src, .close), next_close_time(), TIMER_UNIQUE|TIMER_OVERRIDE)
+			tryingToLock = TRUE
+			addtimer(CALLBACK(src, .proc/close), wait, TIMER_UNIQUE|TIMER_OVERRIDE)
 		return
 	operating = 1
 

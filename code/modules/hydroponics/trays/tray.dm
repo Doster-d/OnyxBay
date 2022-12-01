@@ -142,8 +142,7 @@
 	if(response == "Yes")
 		harvest()
 
-/obj/machinery/portable_atmospherics/hydroponics/attack_generic(var/mob/user)
-
+/obj/machinery/portable_atmospherics/hydroponics/attack_generic(mob/user)
 	// Why did I ever think this was a good idea. TODO: move this onto the nymph mob.
 	if(istype(user,/mob/living/carbon/alien/diona))
 		var/mob/living/carbon/alien/diona/nymph = user
@@ -455,7 +454,7 @@
 
 		var/obj/item/weapon/reagent_containers/syringe/S = O
 
-		if (S.mode == 1)
+		if (S.mode == SYRINGE_INJECT)
 			if(seed)
 				return ..()
 			else
@@ -516,7 +515,7 @@
 	else if(O.force && seed)
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.visible_message("<span class='danger'>\The [seed.display_name] has been attacked by [user] with \the [O]!</span>")
-		playsound(get_turf(src), O.hitsound, 100, 1)
+		playsound(src, O.hitsound, 100, 1)
 		if(!dead)
 			health -= O.force
 			check_health()
@@ -536,6 +535,7 @@
 	to_chat(user, "You plant the [S.seed.seed_name] [S.seed.seed_noun].")
 	lastproduce = 0
 	seed = S.seed //Grab the seed datum.
+	seed.planter_ckey = user.ckey
 	dead = 0
 	age = 1
 

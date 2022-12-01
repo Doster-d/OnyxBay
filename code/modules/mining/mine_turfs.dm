@@ -148,6 +148,8 @@ var/list/mining_floors = list()
 	ore_overlay.appearance_flags = RESET_COLOR
 	ore_overlay.turf_decal_layerise()
 	update_icon()
+	if(mineral.icon_tag == "diamond")
+		explosion_block = 3
 
 //Not even going to touch this pile of spaghetti
 /turf/simulated/mineral/attackby(obj/item/weapon/W as obj, mob/user as mob)
@@ -423,6 +425,7 @@ var/list/mining_floors = list()
 // This means you can put grass on the asteroid etc.
 /turf/simulated/floor/asteroid
 	name = "sand"
+	desc = "Gritty and unpleasant."
 	icon = 'icons/turf/flooring/asteroid.dmi'
 	icon_state = "asteroid"
 	base_name = "sand"

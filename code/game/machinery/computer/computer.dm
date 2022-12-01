@@ -11,8 +11,9 @@
 
 	var/icon_keyboard = "generic_key"
 	var/icon_screen = "generic"
-	var/light_range_on = 2
-	var/light_power_on = 1
+	var/light_max_bright_on = 0.4
+	var/light_inner_range_on = 0.5
+	var/light_outer_range_on = 1
 	var/overlay_layer
 	atom_flags = ATOM_FLAG_CLIMBABLE
 	clicksound = 'sound/effects/using/console/press10.ogg'
@@ -51,13 +52,6 @@
 					verbs -= x
 				set_broken(TRUE)
 
-/obj/machinery/computer/blob_act(destroy, obj/effect/blob/source)
-	if (stat & BROKEN)
-		return
-
-	playsound(src, "console_breaking", 75, FALSE)
-	set_broken(TRUE)
-
 /obj/machinery/computer/bullet_act(obj/item/projectile/Proj)
 	if(prob(Proj.get_structure_damage()))
 		set_broken(TRUE)
@@ -71,12 +65,12 @@
 			overlays += image(icon,"[icon_keyboard]_off", overlay_layer)
 		return
 	else
-		set_light(light_range_on, light_power_on)
+		set_light(light_max_bright_on, light_inner_range_on, light_outer_range_on, 3.5, light_color)
 
 	if(stat & BROKEN)
-		overlays += image(icon,"[icon_state]_broken", overlay_layer)
+		overlays += image(icon, "[icon_state]_broken", overlay_layer)
 	else
-		overlays += image(icon,icon_screen, overlay_layer)
+		overlays += image(icon, icon_screen, overlay_layer)
 
 	if(icon_keyboard)
 		overlays += image(icon, icon_keyboard, overlay_layer)
@@ -86,7 +80,7 @@
 	text = replacetext(text, "\n", "<BR>")
 	return text
 
-/obj/machinery/computer/attackby(I as obj, user as mob)
+/obj/machinery/computer/attackby(obj/item/I, user)
 	if(isScrewdriver(I) && circuit)
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
 		if(do_after(user, 20, src))

@@ -55,7 +55,7 @@ var/next_station_date_change = 1 DAY
 	return time2text(world.timeofday, "hh:mm:ss")
 
 /* Returns 1 if it is the selected month and day */
-proc/isDay(month, day)
+/proc/isDay(month, day)
 	if(isnum(month) && isnum(day))
 		var/MM = text2num(time2text(world.timeofday, "MM")) // get the current month
 		var/DD = text2num(time2text(world.timeofday, "DD")) // get the current day
@@ -120,3 +120,14 @@ GLOBAL_VAR_INIT(rollovercheck_last_timeofday, 0)
 	while (world.tick_usage > min(TICK_LIMIT_TO_RUN, Master.current_ticklimit))
 
 #undef DELTA_CALC
+
+/*
+	Simple throttle realization.
+	Initial value is TRUE.
+	Using example:
+
+	THROTTLE(my_cooldown, 1 SECOND)
+	if(my_cooldown)
+		do_something()
+*/
+#define THROTTLE(variable, delay) var/static/__throttle##variable=list(); var/##variable = 0; if(__throttle##variable["\ref[src]"] == null){__throttle##variable["\ref[src]"] = world.time-delay-1} if(__throttle##variable["\ref[src]"] + delay < world.time) {__throttle##variable["\ref[src]"]=world.time; variable=TRUE} else{variable=FALSE}

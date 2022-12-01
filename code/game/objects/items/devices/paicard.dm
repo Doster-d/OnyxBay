@@ -16,6 +16,9 @@
 	var/obj/item/weapon/rig/rig = get_rig()
 	if(istype(rig))
 		rig.forced_move(direction, user)
+	if(istype(loc, /obj/item/integrated_circuit/input/pAI_connector))
+		var/obj/item/integrated_circuit/input/pAI_connector/tank = loc
+		tank.relaymove(user, direction)
 
 /obj/item/device/paicard/New()
 	..()
@@ -221,7 +224,7 @@
 				<br>
 				<p>Each time this button is pressed, a request will be sent out to any available personalities. Check back often give plenty of time for personalities to respond. This process could take anywhere from 15 seconds to several minutes, depending on the available personalities' timeliness.</p>
 			"}
-	user << browse(dat, "window=paicard")
+	show_browser(user, dat, "window=paicard")
 	onclose(user, "paicard")
 	return
 

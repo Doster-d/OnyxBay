@@ -3,6 +3,7 @@ var/global/datum/controller/occupations/job_master
 #define GET_RANDOM_JOB 0
 #define BE_ASSISTANT 1
 #define RETURN_TO_LOBBY 2
+#define NEW_PLAYER_WAYFINDING_TRACKER 21 // 3 weeks
 
 /datum/controller/occupations
 		//List of all jobs
@@ -148,7 +149,7 @@ var/global/datum/controller/occupations/job_master
 			if(job.is_restricted(player.client.prefs))
 				return FALSE
 
-			var/position_limit = job.total_positions
+			var/position_limit = job.total_positions + job.open_vacancies
 			if(!latejoin)
 				position_limit = job.spawn_positions
 			if((job.current_positions < position_limit) || position_limit == -1)
@@ -157,6 +158,8 @@ var/global/datum/controller/occupations/job_master
 				player.mind.role_alt_title = GetPlayerAltTitle(player, rank)
 				unassigned -= player
 				job.current_positions++
+				if(job.open_vacancies && job.current_positions > job.total_positions)
+					job_master.fill_vacancy(job.title, player.client.prefs.real_name)
 				return TRUE
 		Debug("AR has failed, Player: [player], Rank: [rank]")
 		return FALSE
@@ -437,7 +440,7 @@ var/global/datum/controller/occupations/job_master
 							to_chat(H, "<span class='warning'>Your current species, job or whitelist status does not permit you to spawn with [thing]!</span>")
 							continue
 
-						if(!G.slot || G.slot == slot_tie || (G.slot in loadout_taken_slots) || !G.spawn_on_mob(H, H.client.prefs.Gear()[G.display_name]))
+						if(!G.slot || G.slot == slot_tie || G.slot == slot_belt ||(G.slot in loadout_taken_slots) || !G.spawn_on_mob(H, H.client.prefs.Gear()[G.display_name]))
 							spawn_in_storage.Add(G)
 						else
 							loadout_taken_slots.Add(G.slot)
@@ -562,6 +565,17 @@ var/global/datum/controller/occupations/job_master
 			if(equipped)
 				var/obj/item/clothing/glasses/G = H.glasses
 				G.prescription = 7
+
+		// give pinpointer to new players
+		var/wayfinding_pref = H.get_preference_value(/datum/client_preference/give_wayfinding)
+		var/player_age = H?.client?.player_age
+		if(istext(player_age)) // database not initialized
+			player_age = 0
+		if((player_age <= NEW_PLAYER_WAYFINDING_TRACKER && wayfinding_pref == GLOB.PREF_BASIC) || wayfinding_pref == GLOB.PREF_YES)
+			var/obj/item/weapon/pinpointer/wayfinding/W = new(H)
+			var/equipped = H.equip_to_slot_or_store_or_drop(W, slot_l_store)
+			if(equipped)
+				to_chat(H, SPAN("notice", "You can use [W.name] to obtain location of most popular places."))
 
 		BITSET(H.hud_updateflag, ID_HUD)
 		BITSET(H.hud_updateflag, IMPLOYAL_HUD)
@@ -694,3 +708,99 @@ var/global/datum/controller/occupations/job_master
 		return pick(loc_list)
 	else
 		return locate("start*[rank]") // use old stype
+
+/*
+* Job Vacancy procs and datums
+*/
+
+/datum/controller/occupations/proc/open_vacancy(title)
+	if(!title)
+		return FALSE
+
+	var/datum/job/J = GetJob(title)
+	if(!J)
+		return FALSE
+
+	var/datum/storyteller_character/ST = SSstoryteller.get_character()
+	var/available_vacancies = ST ? ST.get_available_vacancies() : job_master.get_available_vacancies()
+	if(length(GLOB.vacancies) >= available_vacancies)
+		return FALSE
+	++J.open_vacancies
+
+	var/datum/job_vacancy/JV = new
+	JV.title = J.title
+	JV.status = JOB_VACANCY_STATUS_OPEN
+	JV.time = stationtime2text()
+	JV.filledby = "None"
+	JV.id = sequential_id(/datum/job_vacancy)
+	return TRUE
+
+/datum/controller/occupations/proc/fill_vacancy(title, name)
+	if(!title)
+		return
+	if(!name)
+		return
+
+	var/datum/job/J = GetJob(title)
+	if(!J)
+		return FALSE
+	if(J.filled_vacancies >= J.open_vacancies)
+		return FALSE
+	++J.filled_vacancies
+
+	for(var/i in GLOB.vacancies)
+		var/datum/job_vacancy/JV = i
+		if(JV.status != JOB_VACANCY_STATUS_OPEN)
+			continue
+		if(JV.title != title)
+			continue
+
+		JV.filledby = name
+		JV.status = JOB_VACANCY_STATUS_COMPLETED
+		return
+
+/datum/controller/occupations/proc/delete_vacancy(id)
+	if(!id)
+		return FALSE
+
+	var/datum/job_vacancy/JV
+	for(var/i in GLOB.vacancies)
+		var/datum/job_vacancy/JVT = i
+		if(id == JVT.id)
+			JV = JVT
+			break
+
+	if(!JV)
+		return FALSE
+	if(JV.status != JOB_VACANCY_STATUS_OPEN)
+		return FALSE
+
+	var/datum/job/J = GetJob(JV.title)
+	if(!J)
+		return FALSE
+	J.open_vacancies = max(--J.open_vacancies, 0)
+
+	qdel(JV)
+	return TRUE
+
+/datum/controller/occupations/proc/get_available_vacancies()
+	return round(round_duration_in_ticks/JOB_VACANCIES_SLOT_PER_TIME) + JOB_VACANCIES_SLOTS_AVAILABLE_AT_ROUNDSTART
+
+GLOBAL_LIST_EMPTY(vacancies)
+
+/datum/job_vacancy
+	var/title
+	var/status
+	var/time
+	var/filledby
+	var/id
+
+/datum/job_vacancy/New()
+	. = ..()
+	GLOB.vacancies += src
+
+/datum/job_vacancy/Destroy()
+	GLOB.vacancies -= src
+	return ..()
+
+#undef NEW_PLAYER_WAYFINDING_TRACKER

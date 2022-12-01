@@ -11,11 +11,11 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 	flags = ANTAG_OVERRIDE_MOB | ANTAG_OVERRIDE_JOB | ANTAG_CLEAR_EQUIPMENT | ANTAG_VOTABLE | ANTAG_HAS_LEADER
 	antaghud_indicator = "hudmutineer"
 
+	valid_species = list(SPECIES_VOX)
 	hard_cap = 5
 	hard_cap_round = 6
 	initial_spawn_req = 3
 	initial_spawn_target = 4
-	min_player_age = 14
 
 	id_type = /obj/item/weapon/card/id/syndicate
 
@@ -85,16 +85,16 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		/obj/item/weapon/gun/projectile/automatic/machine_pistol/mini_uzi,
 		/obj/item/weapon/gun/projectile/automatic/c20r,
 		/obj/item/weapon/gun/projectile/automatic/wt550,
-		/obj/item/weapon/gun/projectile/automatic/sts35,
-		/obj/item/weapon/gun/projectile/silenced,
+		/obj/item/weapon/gun/projectile/automatic/as75,
+		/obj/item/weapon/gun/projectile/pistol/silenced,
 		/obj/item/weapon/gun/projectile/shotgun/pump,
 		/obj/item/weapon/gun/projectile/shotgun/pump/combat,
 		/obj/item/weapon/gun/projectile/shotgun/doublebarrel,
 		/obj/item/weapon/gun/projectile/shotgun/doublebarrel/pellet,
 		/obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn,
-		/obj/item/weapon/gun/projectile/colt,
-		/obj/item/weapon/gun/projectile/sec,
-		/obj/item/weapon/gun/projectile/pistol,
+		/obj/item/weapon/gun/projectile/pistol/colt,
+		/obj/item/weapon/gun/projectile/pistol/vp78,
+		/obj/item/weapon/gun/projectile/pistol/holdout,
 		/obj/item/weapon/gun/projectile/revolver,
 		/obj/item/weapon/gun/projectile/pirate
 		)
@@ -105,12 +105,15 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		/obj/item/clothing/accessory/holster/hip
 		)
 
+/datum/antagonist/raider/Initialize()
+	. = ..()
+	if(config.raider_min_age)
+		min_player_age = config.raider_min_age
+
 /datum/antagonist/raider/update_access(mob/living/player)
-	for(var/obj/item/weapon/storage/wallet/W in player.contents)
-		for(var/obj/item/weapon/card/id/id in W.contents)
-			id.SetName("[player.real_name]'s Passport")
-			id.registered_name = player.real_name
-			W.SetName("[initial(W.name)] ([id.name])")
+	for(var/obj/item/weapon/card/id/id in player.contents)
+		id.SetName("[player.real_name]'s Passport")
+		id.registered_name = player.real_name
 
 /datum/antagonist/raider/create_global_objectives()
 
@@ -223,12 +226,12 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		player.equip_to_slot_or_del(new new_suit(player),slot_wear_suit)
 		equip_weapons(player)
 
-	var/obj/item/weapon/card/id/id = create_id("Visitor", player, equip = 0)
+	var/obj/item/weapon/card/id/id = create_id("Visitor", player)
 	id.SetName("[player.real_name]'s Passport")
-	id.assignment = "Visitor"
+	id.icon_state = "bum"
+
 	var/obj/item/weapon/storage/wallet/W = new(player)
-	W.handle_item_insertion(id)
-	player.equip_to_slot_or_del(W, slot_wear_id)
+	player.equip_to_slot_or_del(W, slot_l_store)
 	spawn_money(rand(50,150)*10,W)
 	create_radio(RAID_FREQ, player)
 

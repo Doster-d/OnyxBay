@@ -8,6 +8,7 @@
 	turns_per_move = 5
 	maxHealth = 42
 	health = 42
+	speed = 4
 	meat_type = /obj/item/weapon/reagent_containers/food/snacks/tomatomeat
 	response_help  = "prods"
 	response_disarm = "pushes aside"
@@ -21,7 +22,7 @@
 	universal_speak = 0
 	universal_understand = 1
 
-	faction = "creature"
+	faction = "floral"
 
 /mob/living/simple_animal/hostile/tomato/Initialize()
 	. = ..()

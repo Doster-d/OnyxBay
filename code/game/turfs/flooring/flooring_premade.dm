@@ -13,8 +13,8 @@
 	icon = 'icons/turf/flooring/circuit.dmi'
 	icon_state = "rcircuit"
 	initial_flooring = /decl/flooring/reinforced/circuit/red
-	light_range = 2
-	light_power = 2
+	light_outer_range = 2
+	light_max_bright = 3
 	light_color = COLOR_RED
 
 /turf/simulated/floor/grid/bluegrid
@@ -22,8 +22,8 @@
 	icon = 'icons/turf/flooring/circuit.dmi'
 	icon_state = "bcircuit"
 	initial_flooring = /decl/flooring/reinforced/circuit
-	light_range = 2
-	light_power = 3
+	light_outer_range = 2
+	light_max_bright = 3
 	light_color = COLOR_BLUE
 
 /turf/simulated/floor/grid/bluegrid/airless
@@ -34,8 +34,8 @@
 	icon = 'icons/turf/flooring/circuit.dmi'
 	icon_state = "gcircuit"
 	initial_flooring = /decl/flooring/reinforced/circuit/green
-	light_range = 2
-	light_power = 3
+	light_outer_range = 2
+	light_max_bright = 3
 	light_color = COLOR_GREEN
 
 /turf/simulated/floor/grid/greengrid/airless
@@ -350,6 +350,42 @@
 	..()
 	overlays += image("icon"='icons/misc/beach.dmi',"icon_state"="water5","layer"=MOB_LAYER+0.1)
 
+//SAND
+
+/turf/simulated/floor/natural/sand
+	name = "sand"
+	desc = "Crumbly."
+	icon = 'icons/turf/flooring/sand.dmi'
+	icon_state = "sand0"
+	base_name = "sand"
+	base_desc = "Crumbly."
+	base_icon = 'icons/turf/flooring/sand.dmi'
+	base_icon_state = "sand0"
+	var/rand_state = TRUE
+
+/turf/simulated/floor/natural/sand/New()
+	if(rand_state)
+		icon_state = "sand[rand(0, 12)]"
+	..()
+
+/turf/simulated/floor/natural/sand/pure
+	rand_state = FALSE
+
+/turf/simulated/floor/natural/sand/gray
+	rand_state = FALSE
+	icon_state = "sand_gray"
+	base_icon_state = "sand_gray"
+
+/turf/simulated/floor/natural/sand/darksand
+	rand_state = FALSE
+	icon_state = "asteroidplating"
+	icon = 'icons/turf/floors.dmi'
+
+/turf/simulated/floor/sand_floor
+	name = "sand floor"
+	icon = 'icons/turf/flooring/sand.dmi'
+	icon_state = "sand_floor"
+	initial_flooring = /decl/flooring/sand_tile
 
 //MISCELLANEOUS FLOORING
 
@@ -369,6 +405,17 @@
 	icon = 'icons/turf/flooring/cult.dmi'
 	icon_state = "cult"
 	initial_flooring = /decl/flooring/reinforced/cult
+	var/previous_type = /turf/simulated/floor
 
 /turf/simulated/floor/misc/cult/cultify()
 	return
+
+/turf/simulated/floor/water/fountain
+	name = "water"
+	icon = 'icons/misc/beach.dmi'
+	icon_state = "seadeep"
+
+/turf/simulated/floor/water/fountain/Crossed(atom/movable/AM)
+	if(istype(AM, /mob/living))
+		var/mob/living/M = AM
+		M.slip(src, 4)

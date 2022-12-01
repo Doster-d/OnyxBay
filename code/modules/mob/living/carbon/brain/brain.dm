@@ -20,6 +20,9 @@
 		ghostize()		//Ghostize checks for key so nothing else is necessary.
 	. = ..()
 
+/mob/living/carbon/brain/incapacitated()
+	return TRUE
+
 /mob/living/carbon/brain/say_understands(other)//Goddamn is this hackish, but this say code is so odd
 	if (istype(other, /mob/living/silicon/ai))
 		if(!(container && istype(container, /obj/item/device/mmi)))
@@ -43,7 +46,7 @@
 			return 1
 	if (istype(other, /mob/living/carbon/human))
 		return 1
-	if (istype(other, /mob/living/carbon/slime))
+	if (istype(other, /mob/living/carbon/metroid))
 		return 1
 	return ..()
 

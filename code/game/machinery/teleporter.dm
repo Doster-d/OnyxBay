@@ -139,6 +139,8 @@
 	if(get_dist(src, usr) > 1 && !issilicon(usr))
 		return
 
+	playsound(src.loc, 'sound/signals/typing3.ogg', 25)
+
 	locked = L[desc]
 	for(var/mob/O in hearers(src, null))
 		O.show_message("<span class='notice'>Locked In</span>", 2)
@@ -196,7 +198,8 @@
 /obj/machinery/teleport/hub/proc/teleport(atom/movable/M as mob|obj)
 	if(!com)
 		return
-	if(!com.locked)
+	if(QDELETED(com.locked))
+		com.locked = null // If com is still locked to a deleted item
 		for(var/mob/O in hearers(src, null))
 			O.show_message("<span class='warning'>Failure: Cannot authenticate locked on coordinates. Please reinstate coordinate matrix.</span>")
 		return

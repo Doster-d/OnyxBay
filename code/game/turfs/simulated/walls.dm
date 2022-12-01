@@ -8,6 +8,8 @@
 	blocks_air = 1
 	thermal_conductivity = WALL_HEAT_TRANSFER_COEFFICIENT
 	heat_capacity = 312500 //a little over 5 cm thick , 312500 for 1 m by 2.5 m by 0.25 m plasteel wall
+	hitby_sound = 'sound/effects/metalhit2.ogg'
+	explosion_block = 1
 
 	var/damage = 0
 	var/damage_overlay = 0
@@ -154,12 +156,6 @@
 				return abs((check_y0 - check_y1) / (check_x0 - check_x1))
 		return
 
-/turf/simulated/wall/blob_act(destroy, obj/effect/blob/source)
-	if(destroy)
-		dismantle_wall(TRUE)
-	else
-		take_damage(25)
-
 /turf/simulated/wall/bullet_act(obj/item/projectile/Proj)
 	var/proj_damage = Proj.get_structure_damage()
 	if(ricochet_id != 0)
@@ -268,15 +264,20 @@
 	take_damage(damage)
 	return
 
-/turf/simulated/wall/hitby(AM as mob|obj, speed=THROWFORCE_SPEED_DIVISOR)
+/turf/simulated/wall/hitby(atom/movable/AM, speed = THROWFORCE_SPEED_DIVISOR, nomsg = FALSE)
 	..()
+	play_hitby_sound(AM)
 	if(ismob(AM))
 		return
 
-	var/tforce = AM:throwforce * (speed/THROWFORCE_SPEED_DIVISOR)
-	if (tforce < 17.5)
+	var/tforce = AM:throwforce * (speed / THROWFORCE_SPEED_DIVISOR)
+	if(tforce < 17.5)
+		if(!nomsg)
+			visible_message("[AM] bounces off \the [src].")
 		return
 
+	if(!nomsg)
+		visible_message(SPAN("warning", "[src] was hit by [AM]."))
 	take_damage(tforce)
 
 /turf/simulated/wall/proc/clear_plants()
@@ -288,11 +289,10 @@
 			plant.update_icon()
 			plant.pixel_x = 0
 			plant.pixel_y = 0
-		plant.update_neighbors()
 
-/turf/simulated/wall/ChangeTurf(newtype)
+/turf/simulated/wall/ChangeTurf(turf/N, tell_universe = TRUE, force_lighting_update = FALSE)
 	clear_plants()
-	return ..(newtype)
+	return ..()
 
 //Appearance
 /turf/simulated/wall/examine(mob/user)

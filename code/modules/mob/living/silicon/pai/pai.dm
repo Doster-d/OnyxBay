@@ -80,6 +80,8 @@
 
 	var/current_pda_messaging = null
 
+	give_ghost_proc_at_initialize = FALSE
+
 /mob/living/silicon/pai/New(obj/item/device/paicard)
 	status_flags |= NO_ANTAG
 	src.loc = paicard
@@ -91,7 +93,6 @@
 
 	verbs += /mob/living/silicon/pai/proc/choose_chassis
 	verbs += /mob/living/silicon/pai/proc/choose_verbs
-	verbs -= /mob/living/proc/ghost
 
 	..()
 
@@ -241,7 +242,7 @@
 	last_special = world.time + 100
 
 	//I'm not sure how much of this is necessary, but I would rather avoid issues.
-	if(istype(card.loc, /obj/item/rig_module) || istype(card.loc, /obj/item/integrated_circuit/manipulation/ai))
+	if(istype(card.loc, /obj/item/rig_module) || istype(card.loc, /obj/item/integrated_circuit/input/pAI_connector))
 		to_chat(src, "There is no room to unfold inside \the [card.loc]. You're good and stuck.")
 		return 0
 	else if(istype(card.loc,/mob))
@@ -387,8 +388,8 @@
 	return 0
 
 // Handle being picked up.
-/mob/living/silicon/pai/get_scooped(mob/living/carbon/grabber, self_drop)
-	var/obj/item/weapon/holder/H = ..(grabber, self_drop)
+/mob/living/silicon/pai/get_scooped(mob/living/carbon/grabber, self_grab)
+	var/obj/item/weapon/holder/H = ..(grabber, self_grab)
 	if(!istype(H))
 		return
 	H.icon_state = "pai-[icon_state]"

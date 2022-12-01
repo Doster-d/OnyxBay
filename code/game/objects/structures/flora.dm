@@ -71,6 +71,63 @@
 	..()
 	icon_state = "old_pinetree"
 
+/obj/structure/flora/tree/green
+	name = "tree"
+	pixel_x = -48
+	pixel_y = -16
+	icon = 'icons/obj/flora/hdtrees.dmi'
+	icon_state = "tree1"
+
+/obj/structure/flora/tree/green/tree2
+	icon_state = "tree2"
+
+/obj/structure/flora/tree/green/tree3
+	icon_state = "tree3"
+
+/obj/structure/flora/tree/green/tree4
+	icon_state = "tree4"
+
+/obj/structure/flora/tree/green/tree5
+	icon_state = "tree5"
+
+/obj/structure/flora/tree/green/tree6
+	icon_state = "tree6"
+
+/obj/structure/flora/tree/green/tree7
+	icon_state = "tree7"
+
+/obj/structure/flora/tree/green/tree8
+	icon_state = "tree8"
+
+/obj/structure/flora/tree/green/tree9
+	icon_state = "tree9"
+
+/obj/structure/flora/tree/green/tree10
+	icon_state = "tree10"
+
+/obj/structure/flora/tree/green/small
+	pixel_x = -32
+	pixel_y = 0
+	icon = 'icons/obj/flora/hdtreesmall.dmi'
+	icon_state = "tree"
+
+/obj/structure/flora/tree/green/small/tree1
+	icon_state = "tree1"
+
+/obj/structure/flora/tree/green/small/tree2
+	icon_state = "tree2"
+
+/obj/structure/flora/tree/green/small/tree3
+	icon_state = "tree3"
+
+/obj/structure/flora/tree/green/small/tree4
+	icon_state = "tree4"
+
+/obj/structure/flora/tree/green/small/tree5
+	icon_state = "tree5"
+
+/obj/structure/flora/tree/green/small/tree6
+	icon_state = "tree6"
 
 //grass
 /obj/structure/flora/grass
@@ -123,7 +180,8 @@
 	var/obj/item/stored_item
 
 /obj/structure/flora/pottedplant/Destroy()
-	stored_item.forceMove(loc)
+	if(stored_item)
+		stored_item.dropInto(loc)
 	return ..()
 
 /obj/structure/flora/pottedplant/proc/death()
@@ -395,7 +453,10 @@
 	name = "unusual potted plant"
 	desc = "This is an unusual plant. It's bulbous ends emit a soft blue light."
 	icon_state = "plant-09"
-	set_light(l_range = 2, l_power = 2, l_color = "#007fff")
+
+/obj/structure/flora/pottedplant/unusual/Initialize()
+	. = ..()
+	set_light(0.4, 0.1, 2, 2, "#007fff")
 
 /obj/structure/flora/pottedplant/orientaltree
 	name = "potted oriental tree"
@@ -451,7 +512,10 @@
 	name = "subterranean potted plant"
 	desc = "This is a subterranean plant. It's bulbous ends glow faintly."
 	icon_state = "plant-20"
-	set_light(l_range = 1, l_power = 0.5, l_color = "#ff6633")
+
+/obj/structure/flora/pottedplant/subterranean/Initialize()
+	. = ..()
+	set_light(0.4, 0.1, 2, 2, "#ff6633")
 
 /obj/structure/flora/pottedplant/minitree
 	name = "potted tree"

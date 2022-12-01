@@ -15,8 +15,8 @@
 	idle_power_usage = 20
 	clicksound = "button"
 	clickvol = 20
-	var/beaker = null
-	var/obj/item/weapon/storage/pill_bottle/loaded_pill_bottle = null
+	var/obj/item/weapon/reagent_containers/glass/beaker
+	var/obj/item/weapon/storage/pill_bottle/loaded_pill_bottle
 	var/mode = 0
 	var/condi = 0
 	var/useramount = 30 // Last used amount
@@ -26,10 +26,26 @@
 	var/client/has_sprites = list()
 	var/max_pill_count = 20
 	var/capacity = 120
+	component_types = list(
+		/obj/item/weapon/circuitboard/chemmaster,
+		/obj/item/device/healthanalyzer,
+		/obj/item/weapon/stock_parts/scanning_module = 2,
+		/obj/item/weapon/stock_parts/manipulator = 4,
+		/obj/item/weapon/stock_parts/console_screen,
+	)
 	atom_flags = ATOM_FLAG_OPEN_CONTAINER
 
 /obj/machinery/chem_master/New()
 	create_reagents(capacity)
+	..()
+
+/obj/machinery/chem_master/Destroy()
+	if(loaded_pill_bottle)
+		loaded_pill_bottle.forceMove(get_turf(src))
+		loaded_pill_bottle = null
+	if(beaker)
+		beaker.forceMove(get_turf(src))
+		beaker = null
 	..()
 
 /obj/machinery/chem_master/ex_act(severity)
@@ -43,6 +59,12 @@
 				return
 
 /obj/machinery/chem_master/attackby(obj/item/weapon/B as obj, mob/user as mob)
+	if(default_deconstruction_screwdriver(user, B))
+		return
+	if(default_deconstruction_crowbar(user, B))
+		return
+	if(default_part_replacement(user, B))
+		return
 
 	if(istype(B, /obj/item/weapon/reagent_containers/glass))
 
@@ -78,7 +100,7 @@
 			loaded_pill_bottle.loc = src.loc
 			loaded_pill_bottle = null
 	else if(href_list["close"])
-		usr << browse(null, "window=chemmaster")
+		close_browser(usr, "window=chemmaster")
 		usr.unset_machine()
 		return
 
@@ -101,7 +123,7 @@
 					dat += "<TITLE>Chemmaster 3000</TITLE>Chemical infos:<BR><BR>Name:<BR>[href_list["name"]]<BR><BR>Description:<BR>[href_list["desc"]]<BR><BR><BR><A href='?src=\ref[src];main=1'>(Back)</A>"
 			else
 				dat += "<TITLE>Condimaster 3000</TITLE>Condiment infos:<BR><BR>Name:<BR>[href_list["name"]]<BR><BR>Description:<BR>[href_list["desc"]]<BR><BR><BR><A href='?src=\ref[src];main=1'>(Back)</A>"
-			usr << browse(dat, "window=chem_master;size=575x400")
+			show_browser(usr, dat, "window=chem_master;size=575x400")
 			return
 
 		else if (href_list["add"])
@@ -201,14 +223,14 @@
 			for(var/i = 1 to MAX_PILL_SPRITE)
 				dat += "<tr><td><a href=\"?src=\ref[src]&pill_sprite=[i]\"><img src=\"pill[i].png\" /></a></td></tr>"
 			dat += "</table>"
-			usr << browse(dat, "window=chem_master")
+			show_browser(usr, dat, "window=chem_master")
 			return
 		else if(href_list["change_bottle"])
 			var/dat = "<meta charset=\"utf-8\"><table>"
 			for(var/sprite in BOTTLE_SPRITES)
 				dat += "<tr><td><a href=\"?src=\ref[src]&bottle_sprite=[sprite]\"><img src=\"[sprite].png\" /></a></td></tr>"
 			dat += "</table>"
-			usr << browse(dat, "window=chem_master")
+			show_browser(usr, dat, "window=chem_master")
 			return
 		else if(href_list["pill_sprite"])
 			pillsprite = href_list["pill_sprite"]
@@ -229,9 +251,9 @@
 		spawn()
 			has_sprites += user.client
 			for(var/i = 1 to MAX_PILL_SPRITE)
-				usr << browse_rsc(icon('icons/obj/chemical.dmi', "pill" + num2text(i)), "pill[i].png")
+				send_rsc(usr, icon('icons/obj/chemical.dmi', "pill" + num2text(i)), "pill[i].png")
 			for(var/sprite in BOTTLE_SPRITES)
-				usr << browse_rsc(icon('icons/obj/chemical.dmi', sprite), "[sprite].png")
+				send_rsc(usr, icon('icons/obj/chemical.dmi', sprite), "[sprite].png")
 	var/dat = ""
 	if(!beaker)
 		dat = "Please insert beaker.<BR>"
@@ -279,9 +301,9 @@
 		else
 			dat += "<A href='?src=\ref[src];createbottle=1'>Create bottle (50 units max)</A>"
 	if(!condi)
-		user << browse("<meta charset=\"utf-8\"><TITLE>Chemmaster 3000</TITLE>Chemmaster menu:<BR><BR>[dat]", "window=chem_master;size=575x400")
+		show_browser(user, "<meta charset=\"utf-8\"><TITLE>Chemmaster 3000</TITLE>Chemmaster menu:<BR><BR>[dat]", "window=chem_master;size=575x400")
 	else
-		user << browse("<meta charset=\"utf-8\"><TITLE>Condimaster 3000</TITLE>Condimaster menu:<BR><BR>[dat]", "window=chem_master;size=575x400")
+		show_browser(user, "<meta charset=\"utf-8\"><TITLE>Condimaster 3000</TITLE>Condimaster menu:<BR><BR>[dat]", "window=chem_master;size=575x400")
 	onclose(user, "chem_master")
 	return
 
@@ -301,8 +323,14 @@
 	anchored = 0
 	idle_power_usage = 5
 	active_power_usage = 100
+	component_types = list(
+		/obj/item/weapon/circuitboard/grinder,
+		/obj/item/weapon/stock_parts/scanning_module,
+		/obj/item/weapon/stock_parts/manipulator = 2,
+		/obj/item/weapon/stock_parts/console_screen,
+	)
 	var/inuse = 0
-	var/obj/item/weapon/reagent_containers/beaker = null
+	var/obj/item/weapon/reagent_containers/beaker
 	var/limit = 10
 	var/list/holdingitems = list()
 	var/list/sheet_reagents = list(
@@ -316,34 +344,47 @@
 		/obj/item/stack/material/mhydrogen = /datum/reagent/hydrazine
 		)
 
-/obj/machinery/reagentgrinder/New()
-	..()
-	beaker = new /obj/item/weapon/reagent_containers/glass/beaker/large(src)
-	return
+/obj/machinery/reagentgrinder/Initialize(mapload)
+	. = ..()
+	if(mapload)
+		beaker = new /obj/item/weapon/reagent_containers/glass/beaker/large(src)
+	update_icon()
 
 /obj/machinery/reagentgrinder/update_icon()
 	icon_state = "juicer"+num2text(!isnull(beaker))
 	return
 
-/obj/machinery/reagentgrinder/attackby(obj/item/O as obj, mob/user as mob)
+/obj/machinery/reagentgrinder/Destroy()
+	if(beaker)
+		beaker.forceMove(get_turf(src))
+		beaker = null
+	..()
 
-	if (istype(O,/obj/item/weapon/reagent_containers/glass) || \
+/obj/machinery/reagentgrinder/attackby(obj/item/O as obj, mob/user as mob)
+	if(default_deconstruction_screwdriver(user, O))
+		return
+	if(default_deconstruction_crowbar(user, O))
+		return
+	if(default_part_replacement(user, O))
+		return
+
+	if(istype(O,/obj/item/weapon/reagent_containers/glass) || \
 		istype(O,/obj/item/weapon/reagent_containers/food/drinks/glass2) || \
 		istype(O,/obj/item/weapon/reagent_containers/food/drinks/shaker))
 
-		if (beaker)
-			return 1
+		if(beaker)
+			return TRUE
 		else
 			src.beaker =  O
 			user.drop_item()
 			O.loc = src
 			update_icon()
 			src.updateUsrDialog()
-			return 0
+			return FALSE
 
 	if(holdingitems && holdingitems.len >= limit)
 		to_chat(usr, "The machine cannot hold anymore items.")
-		return 1
+		return TRUE
 
 	if(!istype(O))
 		return
@@ -371,8 +412,7 @@
 
 		src.updateUsrDialog()
 		return 0
-
-	if(!sheet_reagents[O.type] && (!O.reagents || !O.reagents.total_volume))
+	if((!sheet_reagents[O.type] && (!O.reagents || !O.reagents.total_volume)) || istype(O, /obj/item/weapon/reagent_containers/dropper))
 		to_chat(user, "\The [O] is not suitable for blending.")
 		return 1
 
@@ -438,7 +478,7 @@
 			dat += "<A href='?src=\ref[src];action=detach'>Detach the beaker</a><BR>"
 	else
 		dat += "Please wait..."
-	user << browse("<meta charset=\"utf-8\"><HEAD><TITLE>All-In-One Grinder</TITLE></HEAD><TT>[dat]</TT>", "window=reagentgrinder")
+	show_browser(user, "<meta charset=\"utf-8\"><HEAD><TITLE>All-In-One Grinder</TITLE></HEAD><TT>[dat]</TT>", "window=reagentgrinder")
 	onclose(user, "reagentgrinder")
 	return
 

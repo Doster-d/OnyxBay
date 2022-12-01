@@ -2,6 +2,16 @@
 // Some SPECIAL clothes for the exceptionally important onyx residents //
 /////////////////////////////////////////////////////////////////////////
 
+// HentaiStorm
+/obj/item/clothing/suit/storage/toggle/det_trench/gilded
+	name = "detective gilded trenchcoat"
+	desc = "A gilded trenchcoat sewn for especially distinguished detectives."
+	icon_state  = "detectivegold_open"
+	item_state  = "detectivegold_open"
+	icon_open   = "detectivegold_open"
+	icon_closed = "detectivegold"
+	matter = list(MATERIAL_GOLD = 2000)
+
 // Schutze88
 /obj/item/clothing/suit/armor/hos/jensen/fieldcoat
 	name = "military trenchcoat"
@@ -115,3 +125,20 @@
 	if(user.gender == FEMALE)
 		to_chat(user, SPAN("warning", "You aren't sure you'll fit in this men's cloth..."))
 		return 0
+
+// AmiClerick
+
+/obj/item/clothing/suit/storage/toggle/labcoat/amired
+	name = "fancy labcoat"
+	desc = "A suit that protects against minor chemical spills. This one looks especially special. Perhaps, its owner survived a fireaxey medbay massacre? Or just put it into a washing machine with some red cloth."
+	icon_state = "amicoat"
+
+/obj/item/clothing/suit/storage/toggle/labcoat/amired/toggle()
+	set name = "Toggle Coat Buttons"
+	set category = "Object"
+	set src in usr
+
+	if(usr.incapacitated())
+		return 0
+
+	to_chat(usr, "The buttonholes appear to be purely decorative. Oh.")

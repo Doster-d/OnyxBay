@@ -47,15 +47,17 @@
 
 	var/datum/job/assigned_job
 
+	var/completed_contracts = 0
 	var/list/datum/objective/objectives = list()
 	var/list/datum/objective/special_verbs = list()
 	var/syndicate_awareness = SYNDICATE_UNAWARE
 
 	var/has_been_rev = 0//Tracks if this mind has been a rev or not
 
-	var/datum/faction/faction 			//associated faction
-	var/datum/changeling/changeling		//changeling holder
-	var/datum/vampire/vampire 			//vampire holder
+	var/datum/faction/faction 			// Associated faction
+	var/datum/changeling/changeling		// Changeling holder
+	var/datum/vampire/vampire 			// Vampire holder
+	var/datum/wizard/wizard				// Wizard holder
 	var/rev_cooldown = 0
 
 	// the world.time since the mob has been brigged, or -1 if not at all
@@ -86,7 +88,7 @@
 
 /datum/mind/proc/transfer_to(mob/living/new_character)
 	if(!istype(new_character))
-		world.log << "## DEBUG: transfer_to(): Some idiot has tried to transfer_to() a non mob/living mob. Please inform Carn"
+		to_world_log("## DEBUG: transfer_to(): Some idiot has tried to transfer_to() a non mob/living mob. Please inform developers.")
 	if(current)					//remove ourself from our old body's mind variable
 		if(changeling)
 			current.remove_changeling_powers()
@@ -130,7 +132,7 @@
 			obj_count++
 	if(ambitions)
 		output += "<HR><B>Ambitions:</B> [ambitions]<br>"
-	recipient << browse(output,"window=memory")
+	show_browser(recipient, output,"window=memory")
 
 /datum/mind/proc/edit_memory()
 	if(GAME_STATE <= RUNLEVEL_SETUP)
@@ -166,7 +168,7 @@
 		out += "None."
 	out += "<br><a href='?src=\ref[src];obj_add=1'>\[add\]</a><br><br>"
 	out += "<b>Ambitions:</b> [ambitions ? ambitions : "None"] <a href='?src=\ref[src];amb_edit=\ref[src]'>\[edit\]</a></br>"
-	usr << browse(out, "window=edit_memory[src]")
+	show_browser(usr, out, "window=edit_memory[src]")
 
 /datum/mind/Topic(href, href_list)
 	if(!check_rights(R_ADMIN))	return
@@ -531,14 +533,14 @@
 	..()
 	if(!mind.assigned_role)	mind.assigned_role = "Assistant"	//defualt
 
-//slime
-/mob/living/carbon/slime/mind_initialize()
+//metroid
+/mob/living/carbon/metroid/mind_initialize()
 	..()
-	mind.assigned_role = "slime"
+	mind.assigned_role = "metroid"
 
 /mob/living/carbon/alien/larva/mind_initialize()
 	..()
-	mind.special_role = "Larva"
+	mind.special_role = "Xenomorph"
 
 //AI
 /mob/living/silicon/ai/mind_initialize()

@@ -30,7 +30,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	if(client.cache.Find(asset_name) || client.sending.Find(asset_name))
 		return 0
 
-	client << browse_rsc(asset_cache.cache[asset_name], asset_name)
+	send_rsc(client, asset_cache.cache[asset_name], asset_name)
 
 	if(!verify)
 		client.cache += asset_name
@@ -73,7 +73,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 
 	for(var/asset in unreceived)
 		if (asset in asset_cache.cache)
-			client << browse_rsc(asset_cache.cache[asset], asset)
+			send_rsc(client, asset_cache.cache[asset], asset)
 
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		client.cache += unreceived
@@ -227,61 +227,69 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 		"icons/pda_icons/",
 	)
 
-/datum/asset/group/onyxchat
-	isTrivial = FALSE
-	children = list(
-		/datum/asset/simple/jquery,
-		/datum/asset/simple/onyxchat,
-		/datum/asset/simple/fontawesome
-	)
-
-/datum/asset/simple/jquery
-	verify = FALSE
-	assets = list(
-		"jquery.min.js"            = 'code/modules/onyxchat/browserassets/js/jquery.min.js',
-	)
-
-/datum/asset/simple/onyxchat
-	isTrivial = FALSE
-	verify = FALSE
-	assets = list(
-		"json2.min.js"             = 'code/modules/onyxchat/browserassets/js/json2.min.js',
-		"browserOutput.js"         = 'code/modules/onyxchat/browserassets/js/browserOutput.js',
-		"browserOutput.css"	       = 'code/modules/onyxchat/browserassets/css/browserOutput.css',
-		"browserOutput_white.css"  = 'code/modules/onyxchat/browserassets/css/browserOutput_white.css',
-		"browserOutput_marines.css"  = 'code/modules/onyxchat/browserassets/css/browserOutput_marines.css'
-	)
-
 /datum/asset/simple/fontawesome
 	isTrivial = TRUE
 	verify = FALSE
 	assets = list(
 		"fa-regular-400.eot"  = 'html/font-awesome/webfonts/fa-regular-400.eot',
 		"fa-regular-400.woff" = 'html/font-awesome/webfonts/fa-regular-400.woff',
+		"fa-brands-400.eot"  = 'html/font-awesome/webfonts/fa-brands-400.eot',
+		"fa-brands-400.woff"  = 'html/font-awesome/webfonts/fa-brands-400.woff',
 		"fa-solid-900.eot"    = 'html/font-awesome/webfonts/fa-solid-900.eot',
 		"fa-solid-900.woff"   = 'html/font-awesome/webfonts/fa-solid-900.woff',
 		"font-awesome.css"    = 'html/font-awesome/css/all.min.css',
 		"v4shim.css"          = 'html/font-awesome/css/v4-shims.min.css'
 	)
 
-/datum/asset/simple/tgui
+/datum/asset/simple/codicon
+	isTrivial = TRUE
 	verify = FALSE
 	assets = list(
-		// tgui-next
-		"tgui-main.html" = 'tgui-next/packages/tgui/public/tgui-main.html',
-		"tgui-fallback.html" = 'tgui-next/packages/tgui/public/tgui-fallback.html',
-		"tgui.bundle.js" = 'tgui-next/packages/tgui/public/tgui.bundle.js',
-		"tgui.bundle.css" = 'tgui-next/packages/tgui/public/tgui.bundle.css',
-		"shim-html5shiv.js" = 'tgui-next/packages/tgui/public/shim-html5shiv.js',
-		"shim-ie8.js" = 'tgui-next/packages/tgui/public/shim-ie8.js',
-		"shim-dom4.js" = 'tgui-next/packages/tgui/public/shim-dom4.js',
-		"shim-css-om.js" = 'tgui-next/packages/tgui/public/shim-css-om.js'
+		"codicon.css" = 'html/codicon/codicon.css',
+		"codicon.ttf" = 'html/codicon/codicon.ttf'
 	)
 
-/datum/asset/group/tgui
-	children = list(
-		/datum/asset/simple/fontawesome,
-		/datum/asset/simple/tgui
+/datum/asset/simple/reaver
+	isTrivial = TRUE
+	verify = FALSE
+	assets = list(
+		"reaver.css" = 'html/reaver/reaver.css',
+		"Reaver-Black.woff" = 'html/reaver/Reaver-Black.woff',
+		"Reaver-Bold.woff" = 'html/reaver/Reaver-Bold.woff',
+		"Reaver-Regular.woff" = 'html/reaver/Reaver-Regular.woff',
+		"Reaver-SemiBold.woff" = 'html/reaver/Reaver-SemiBold.woff',
+	)
+
+/datum/asset/simple/tgui_common
+	isTrivial = TRUE
+	verify = FALSE
+	assets = list(
+		"tgui-common.bundle.js" = 'tgui/public/tgui-common.bundle.js',
+	)
+
+/datum/asset/simple/tgui
+	isTrivial = TRUE
+	verify = FALSE
+	assets = list(
+		"tgui.bundle.js" = 'tgui/public/tgui.bundle.js',
+		"tgui.bundle.css" = 'tgui/public/tgui.bundle.css',
+	)
+
+/datum/asset/simple/tgui_panel
+	isTrivial = TRUE
+	verify = FALSE
+	assets = list(
+		"tgui-panel.bundle.js" = 'tgui/public/tgui-panel.bundle.js',
+		"tgui-panel.bundle.css" = 'tgui/public/tgui-panel.bundle.css',
+	)
+
+/datum/asset/simple/tgfont
+	isTrivial = TRUE
+	verify = FALSE
+	assets = list(
+		"tgfont.eot" = 'tgui/packages/tgfont/dist/tgfont.eot',
+		"tgfont.woff2" = 'tgui/packages/tgfont/dist/tgfont.woff2',
+		"tgfont.css" = 'tgui/packages/tgfont/dist/tgfont.css'
 	)
 
 /datum/asset/directories/nanoui
@@ -296,6 +304,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 		"nano/images/source/",
 		"nano/images/modular_computers/",
 		"nano/images/exodus/",
+		"nano/images/frontier/",
 		"nano/images/example/"
 	)
 

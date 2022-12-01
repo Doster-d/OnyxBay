@@ -6,6 +6,7 @@ var/list/gamemode_cache = list()
 	var/server_suffix = 0					// generate numeric suffix based on server port
 	var/subserver_name = null               // subserver name in window title, ignored if null
 
+	var/log_story = 0						// Story logging, say, emote, ooc and etc without personal data.
 	var/log_ooc = 0							// Log OOC channel
 	var/log_access = 0						// Log login/logout
 	var/log_say = 0							// Log client say
@@ -22,7 +23,7 @@ var/list/gamemode_cache = list()
 	var/log_adminwarn = 0					// Log warnings admins get about bomb construction and such
 	var/log_pda = 0							// Log pda messages
 	var/log_hrefs = 0						// Log all links clicked in-game. Could be used for debugging and tracking down exploits
-	var/log_world_output = 0				// Log world.log << messages
+	var/log_world_output = 0				// Log to_world_log(messages)
 
 	var/sql_enabled = FALSE					// SQL storage. If you want to enable it, use sql_enabled var in config file
 
@@ -111,6 +112,7 @@ var/list/gamemode_cache = list()
 	var/discordurl
 	var/githuburl
 	var/patreonurl
+	var/changelogurl
 
 	var/minutetopiclimit
 	var/secondtopiclimit
@@ -150,7 +152,7 @@ var/list/gamemode_cache = list()
 	var/robot_delay = 0
 	var/monkey_delay = 0
 	var/alien_delay = 0
-	var/slime_delay = 0
+	var/metroid_delay = 0
 	var/animal_delay = 0
 	var/maximum_mushrooms = 15 //After this amount alive, mushrooms will not boom boom
 
@@ -161,6 +163,32 @@ var/list/gamemode_cache = list()
 	var/ban_legacy_system = 0	//Defines whether the server uses the legacy banning system with the files in /data or the SQL system. Config option in config.txt
 	var/use_age_restriction_for_jobs = 0   //Do jobs use account age restrictions?   --requires database
 	var/use_age_restriction_for_antags = 0 //Do antags use account age restrictions? --requires database
+
+	// Minimum age requirements in days for antagonists, not used at all without a value. Depends on use_age_restriction_for_antags.
+	var/traitor_min_age
+	var/changeling_min_age
+	var/ninja_min_age
+	var/raider_min_age
+	var/nuke_min_age
+	var/wizard_min_age
+	var/xeno_min_age
+	var/malf_min_age
+	var/cultist_min_age
+	var/actor_min_age
+	var/ert_min_age
+	var/revolutionary_min_age
+	var/vampire_min_age
+	var/thrall_min_age
+	//Deprecated
+	var/renegade_min_age
+	var/borer_min_age
+	var/loyalist_min_age
+	var/meme_min_age
+	var/deathsquad_min_age
+	var/commando_min_age
+	var/deity_min_age
+	var/godcultist_min_age
+	var/loyalists_min_age
 
 	var/simultaneous_pm_warning_timeout = 100
 
@@ -256,6 +284,10 @@ var/list/gamemode_cache = list()
 
 	var/db_uses_cp1251_encoding = FALSE
 
+	// round OOC disable
+	var/disable_ooc_roundstart = FALSE
+	var/disable_looc_roundstart = FALSE
+
 /datum/configuration/proc/Initialize()
 	var/list/L = typesof(/datum/game_mode) - /datum/game_mode
 	for (var/T in L)
@@ -329,11 +361,67 @@ var/list/gamemode_cache = list()
 				if ("use_age_restriction_for_antags")
 					config.use_age_restriction_for_antags = 1
 
+				if ("disable_ooc_at_roundstart")
+					disable_ooc_roundstart = TRUE
+
+				if ("disable_looc_at_roundstart")
+					disable_looc_roundstart = TRUE
+
+				if ("traitor_min_age")
+					config.traitor_min_age = text2num(value)
+				if ("changeling_min_age")
+					config.changeling_min_age = text2num(value)
+				if ("ninja_min_age")
+					config.ninja_min_age = text2num(value)
+				if ("raider_min_age")
+					config.raider_min_age = text2num(value)
+				if ("nuke_min_age")
+					config.nuke_min_age = text2num(value)
+				if ("wizard_min_age")
+					config.wizard_min_age = text2num(value)
+				if ("xeno_min_age")
+					config.xeno_min_age = text2num(value)
+				if ("malf_min_age")
+					config.malf_min_age = text2num(value)
+				if ("cultist_min_age")
+					config.cultist_min_age = text2num(value)
+				if ("actor_min_age")
+					config.actor_min_age = text2num(value)
+				if ("ert_min_age")
+					config.ert_min_age = text2num(value)
+				if ("revolutionary_min_age")
+					config.revolutionary_min_age = text2num(value)
+				if ("vampire_min_age")
+					config.vampire_min_age = text2num(value)
+				if ("thrall_min_age")
+					config.thrall_min_age = text2num(value)
+				if ("renegade_min_age")
+					config.renegade_min_age = text2num(value)
+				if ("borer_min_age")
+					config.borer_min_age = text2num(value)
+				if ("loyalist_min_age")
+					config.loyalist_min_age = text2num(value)
+				if ("meme_min_age")
+					config.meme_min_age = text2num(value)
+				if ("deathsquad_min_age")
+					config.deathsquad_min_age = text2num(value)
+				if ("commando_min_age")
+					config.commando_min_age = text2num(value)
+				if ("deity_min_age")
+					config.deity_min_age = text2num(value)
+				if ("godcultist_min_age")
+					config.godcultist_min_age = text2num(value)
+				if ("loyalists_min_age")
+					config.loyalists_min_age = text2num(value)
+
 				if ("jobs_have_minimal_access")
 					config.jobs_have_minimal_access = 1
 
 				if ("use_recursive_explosions")
 					use_recursive_explosions = 1
+
+				if("log_story")
+					config.log_story = TRUE
 
 				if ("log_ooc")
 					config.log_ooc = 1
@@ -491,6 +579,9 @@ var/list/gamemode_cache = list()
 
 				if ("patreonurl")
 					config.patreonurl = value
+
+				if ("changelogurl")
+					config.changelogurl = value
 
 				if ("ghosts_can_possess_animals")
 					config.ghosts_can_possess_animals = value
@@ -870,8 +961,8 @@ var/list/gamemode_cache = list()
 					config.monkey_delay = text2num(value)
 				if("alien_delay")
 					config.alien_delay = text2num(value)
-				if("slime_delay")
-					config.slime_delay = text2num(value)
+				if("metroid_delay")
+					config.metroid_delay = text2num(value)
 				if("animal_delay")
 					config.animal_delay = text2num(value)
 				if("maximum_mushrooms")
@@ -929,6 +1020,16 @@ var/list/gamemode_cache = list()
 				sqlfdbkpass = value
 			if ("enable_stat_tracking")
 				sqllogging = TRUE
+			if ("donation_address")
+				sqldonaddress = value
+			if ("donation_port")
+				sqldonport = value
+			if ("donation_database")
+				sqldondb = value
+			if ("donation_login")
+				sqldonlogin = value
+			if ("donation_password")
+				sqldonpass = value
 			else
 				log_misc("Unknown setting in configuration: '[name]'")
 

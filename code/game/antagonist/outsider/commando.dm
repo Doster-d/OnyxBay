@@ -10,6 +10,8 @@ GLOBAL_DATUM_INIT(commandos, /datum/antagonist/deathsquad/syndicate, new)
 	flags = ANTAG_RANDOM_EXCEPTED | ANTAG_CLEAR_EQUIPMENT | ANTAG_CHOOSE_NAME | ANTAG_OVERRIDE_JOB | ANTAG_SET_APPEARANCE
 	antaghud_indicator = "hudoperative"
 
+	valid_species = list(SPECIES_HUMAN) // Syndicate Comms don't like xenos.
+
 	hard_cap = 4
 	hard_cap_round = 8
 	initial_spawn_req = 4
@@ -17,10 +19,15 @@ GLOBAL_DATUM_INIT(commandos, /datum/antagonist/deathsquad/syndicate, new)
 
 	station_crew_involved = FALSE
 
+/datum/antagonist/deathsquad/syndicate/Initialize()
+	. = ..()
+	if(config.commando_min_age)
+		min_player_age = config.commando_min_age
+
 /datum/antagonist/deathsquad/syndicate/equip(mob/living/carbon/human/player)
 
 	player.equip_to_slot_or_del(new /obj/item/clothing/under/syndicate(player), slot_w_uniform)
-	player.equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/silenced(player), slot_belt)
+	player.equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/pistol/silenced(player), slot_belt)
 	player.equip_to_slot_or_del(new /obj/item/clothing/shoes/swat(player), slot_shoes)
 	player.equip_to_slot_or_del(new /obj/item/clothing/glasses/hud/standard/thermal(player), slot_glasses)
 	player.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/syndicate(player), slot_wear_mask)

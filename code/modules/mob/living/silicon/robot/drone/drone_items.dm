@@ -154,7 +154,7 @@
 		/obj/item/organ/internal/posibrain,
 		/obj/item/stack/cable_coil,
 		/obj/item/weapon/circuitboard,
-		/obj/item/slime_extract,
+		/obj/item/metroid_extract,
 		/obj/item/weapon/reagent_containers/glass,
 		/obj/item/weapon/reagent_containers/food/snacks/monkeycube,
 		/obj/item/mecha_parts,
@@ -188,21 +188,29 @@
 
 	cant_hold = list() // understandable, have a great day
 
-/obj/item/weapon/gripper/surgical //Used to handle organs.
-	name = "surgical gripper"
+/obj/item/weapon/gripper/medical //Used to do medical stuff.
+	name = "medical gripper"
 	icon_state = "gripper-medical"
-	desc = "A simple grasping tool for holding surgical utensils as well organs and bodyparts."
+	desc = "A simple grasping tool for holding surgical utensils as well organs and bodyparts, also works fine with other medical stuff."
 	storage_type = list(
-		/obj/item/weapon/storage/box/
+		/obj/item/weapon/storage/box/,
+		/obj/item/weapon/storage/fancy/vials,
+		/obj/item/weapon/storage/lockbox/vials
 		)
 	can_hold = list(
 	/obj/item/organ,
-	/obj/item/weapon/reagent_containers/ivbag,
 	/obj/item/weapon/tank/anesthetic,
 	/obj/item/weapon/reagent_containers/food/snacks/meat,
 	/obj/item/device/mmi,
 	/obj/item/robot_parts,
-	/obj/item/weapon/paper
+	/obj/item/weapon/paper,
+	/obj/item/weapon/reagent_containers/glass,
+	/obj/item/weapon/reagent_containers/pill,
+	/obj/item/weapon/reagent_containers/ivbag,
+	/obj/item/stack/material/plasma,
+	/obj/item/weapon/storage/pill_bottle,
+	/obj/item/weapon/reagent_containers/food/snacks/monkeycube,
+	/obj/item/weapon/virusdish,
 	)
 
 /obj/item/weapon/gripper/no_use //Used when you want to hold and put items in other things, but not able to 'use' the item
@@ -225,17 +233,6 @@
 		. += "\nIt is holding \a [wrapped]."
 	else if (length(storage_type))
 		. += "\n[src] is currently can [mode == MODE_EMPTY ? "empty" : "open"] containers."
-
-/obj/item/weapon/gripper/integrated_circuit/attack_self(mob/living/silicon/user)
-	if(wrapped)
-		if (istype(wrapped, /obj/item/device/electronic_assembly))
-			var/obj/item/device/electronic_assembly/O = wrapped
-			O.interact(user)
-
-/obj/item/weapon/gripper/integrated_circuit/afterattack(atom/target, mob/user, proximity)
-	if(proximity && istype(wrapped, /obj/item/integrated_circuit) && istype(target, /obj/item/device/electronic_assembly))
-		var/obj/item/device/electronic_assembly/AS = target
-		AS.try_add_component(wrapped, user, AS)
 
 /obj/item/weapon/gripper/attack_self(mob/user as mob)
 	if(wrapped)
@@ -290,6 +287,12 @@
 	user.do_attack_animation(src)
 
 	if(wrapped)
+		if(istype(target, /obj/item/device/electronic_assembly) && istype(wrapped, /obj/item/integrated_circuit))
+			var/obj/item/device/electronic_assembly/AS = target
+			wrapped.forceMove(get_turf(AS), params)
+			AS.try_add_component(wrapped, user, AS)
+			wrapped = null
+			return
 		if(istype(target,/obj/structure/table)) //Putting item on the table if any
 			var/obj/structure/table/T = target
 			to_chat(src.loc, "<span class='notice'>You place \the [wrapped] on \the [target].</span>")
@@ -359,7 +362,7 @@
 		//Check if the item is blacklisted.
 		var/grab = 0
 		for(var/typepath in can_hold)
-			if(istype(I,typepath))
+			if(istype(I,typepath) && !I.anchored)
 				grab = 1
 				break
 
@@ -526,7 +529,7 @@
 		//Different classes of items give different commodities.
 		if(istype(W,/obj/item/weapon/cigbutt))
 			if(plastic)
-				plastic.add_charge(500)
+				plastic.add_charge(250)
 		else if(istype(W,/obj/effect/spider/spiderling))
 			if(wood)
 				wood.add_charge(2000)
@@ -567,6 +570,9 @@
 		else if(istype(W,/obj/item/weapon/material/shard))
 			if(glass)
 				glass.add_charge(1000)
+		else if(istype(W,/obj/item/weapon/flame/match))
+			if(wood)
+				wood.add_charge(250)
 		else if(istype(W,/obj/item/weapon/reagent_containers/food/snacks/grown))
 			if(wood)
 				wood.add_charge(4000)
@@ -636,4 +642,4 @@
 
 	dat += resources
 
-	src << browse(dat, "window=robotmod")
+	show_browser(src, dat, "window=robotmod")

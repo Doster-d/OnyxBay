@@ -1,5 +1,5 @@
 /datum/design/item/surgery
-	category_items = "Surgery"
+	category_items = list("Surgery")
 
 /datum/design/item/surgery/scalpel_laser1
 	name = "basic laser scalpel"
@@ -80,7 +80,7 @@
 	desc = "A modification of QROF-26 organ fixer design. This model uses a cluster of advanced manipulators, which allows it to fix multiple organs at once, as well as an enlarged gel storage tank."
 	id = "organfixer_advanced"
 	req_tech = list(TECH_MATERIAL = 5, TECH_ENGINEERING = 4, TECH_BIO = 4)
-	materials = list (MATERIAL_STEEL = 10000, MATERIAL_GLASS = 5000, MATERIAL_GOLD = 250, MATERIAL_SILVER = 750)
+	materials = list (MATERIAL_STEEL = 12500, MATERIAL_GLASS = 7500)
 	build_path = /obj/item/weapon/organfixer/advanced/empty
 	sort_string = "MBEAI"
 
@@ -108,4 +108,4 @@
 	materials = list (MATERIAL_STEEL = 10000, MATERIAL_GLASS = 7500, MATERIAL_SILVER = 1000, MATERIAL_GOLD = 1000)
 	build_path = /obj/item/organ/internal/stack
 	sort_string = "VACBA"
-	category_items = "Surgery"
+	category_items = list("Surgery")

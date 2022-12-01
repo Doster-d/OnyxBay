@@ -142,20 +142,20 @@
 
 		if(/obj/item/weapon/gun/energy/taser)
 			eprojectile = /obj/item/projectile/beam
-			eshot_sound = 'sound/weapons/Laser.ogg'
+			eshot_sound = 'sound/effects/weapons/energy/Laser.ogg'
 
 		if(/obj/item/weapon/gun/energy/stunrevolver)
 			eprojectile = /obj/item/projectile/beam
-			eshot_sound = 'sound/weapons/Laser.ogg'
+			eshot_sound = 'sound/effects/weapons/energy/Laser.ogg'
 
 		if(/obj/item/weapon/gun/energy/gun)
 			eprojectile = /obj/item/projectile/beam	//If it has, going to kill mode
-			eshot_sound = 'sound/weapons/Laser.ogg'
+			eshot_sound = 'sound/effects/weapons/energy/Laser.ogg'
 			egun = 1
 
 		if(/obj/item/weapon/gun/energy/gun/nuclear)
 			eprojectile = /obj/item/projectile/beam	//If it has, going to kill mode
-			eshot_sound = 'sound/weapons/Laser.ogg'
+			eshot_sound = 'sound/effects/weapons/energy/Laser.ogg'
 			egun = 1
 
 var/list/turret_icons
@@ -360,6 +360,7 @@ var/list/turret_icons
 
 /obj/machinery/porta_turret/emag_act(remaining_charges, mob/user)
 	if(!emagged)
+		playsound(src.loc, 'sound/effects/computer_emag.ogg', 25)
 		//Emagging the turret makes it go bonkers and stun everyone. It also makes
 		//the turret shoot much, much faster.
 		to_chat(user, "<span class='warning'>You short out [src]'s threat assessment circuits.</span>")

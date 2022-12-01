@@ -154,9 +154,9 @@
 				/obj/item/weapon/storage/pill_bottle/dexalin_plus = 1,
 				/obj/item/weapon/storage/pill_bottle/dermaline = 1,
 				/obj/item/weapon/storage/pill_bottle/bicaridine = 1,
-				/obj/item/weapon/reagent_containers/syringe/antitoxin = 2,
-				/obj/item/weapon/reagent_containers/syringe/antiviral = 1,
-				/obj/item/weapon/reagent_containers/syringe/inaprovaline = 2,
+				/obj/item/weapon/reagent_containers/syringe/antitoxin/packaged = 2,
+				/obj/item/weapon/reagent_containers/syringe/antiviral/packaged = 1,
+				/obj/item/weapon/reagent_containers/syringe/inaprovaline/packaged = 2,
 				/obj/item/weapon/storage/box/freezer = 1,
 				/obj/item/stack/nanopaste = 1)
 
@@ -177,7 +177,7 @@
 				/obj/item/stack/medical/splint = 1,
 				/obj/item/bodybag/cryobag = 1,
 				/obj/item/weapon/storage/pill_bottle/kelotane = 2,
-				/obj/item/weapon/storage/pill_bottle/antitox = 2)
+				/obj/item/weapon/storage/pill_bottle/dylovene = 2)
 
 /obj/random/firstaid
 	name = "Random First Aid Kit"
@@ -192,7 +192,7 @@
 				/obj/item/weapon/storage/firstaid/o2 = 6,
 				/obj/item/weapon/storage/firstaid/adv = 3,
 				/obj/item/weapon/storage/firstaid/combat = 1,
-				/obj/item/weapon/storage/firstaid/empty = 6,
+				/obj/item/weapon/storage/firstaid = 6,
 				/obj/item/weapon/storage/firstaid/fire = 6)
 
 /obj/random/contraband
@@ -223,7 +223,7 @@
 				/obj/item/stack/telecrystal = 1,
 				/obj/item/clothing/under/syndicate = 2,
 				/obj/item/weapon/reagent_containers/syringe = 3,
-				/obj/item/weapon/reagent_containers/syringe/steroid = 2,
+				/obj/item/weapon/reagent_containers/syringe/steroid/packaged = 2,
 				/obj/item/weapon/reagent_containers/syringe/drugs = 1)
 
 /obj/random/drinkbottle
@@ -275,12 +275,12 @@
 /obj/random/projectile/spawn_choices()
 	return list(/obj/item/weapon/gun/projectile/shotgun/pump = 3,
 				/obj/item/weapon/gun/projectile/automatic/c20r = 2,
-				/obj/item/weapon/gun/projectile/automatic/sts35 = 2,
+				/obj/item/weapon/gun/projectile/automatic/as75 = 2,
 				/obj/item/weapon/gun/projectile/automatic/z8 = 2,
-				/obj/item/weapon/gun/projectile/colt = 4,
-				/obj/item/weapon/gun/projectile/sec = 4,
-				/obj/item/weapon/gun/projectile/sec/wood = 3,
-				/obj/item/weapon/gun/projectile/pistol = 4,
+				/obj/item/weapon/gun/projectile/pistol/colt = 4,
+				/obj/item/weapon/gun/projectile/pistol/vp78 = 4,
+				/obj/item/weapon/gun/projectile/pistol/secgun/wood = 3,
+				/obj/item/weapon/gun/projectile/pistol/holdout = 4,
 				/obj/item/weapon/gun/projectile/pirate = 5,
 				/obj/item/weapon/gun/projectile/revolver = 2,
 				/obj/item/weapon/gun/projectile/automatic/wt550 = 3,
@@ -298,12 +298,12 @@
 	icon_state = "secgundark"
 
 /obj/random/handgun/spawn_choices()
-	return list(/obj/item/weapon/gun/projectile/sec = 3,
+	return list(/obj/item/weapon/gun/projectile/pistol/vp78 = 3,
 				/obj/item/weapon/gun/energy/gun = 2,
-				/obj/item/weapon/gun/projectile/colt = 2,
-				/obj/item/weapon/gun/projectile/pistol = 2,
+				/obj/item/weapon/gun/projectile/pistol/colt = 2,
+				/obj/item/weapon/gun/projectile/pistol/holdout = 2,
 				/obj/item/weapon/gun/energy/retro = 1,
-				/obj/item/weapon/gun/projectile/sec/wood = 1)
+				/obj/item/weapon/gun/projectile/pistol/secgun/wood = 1)
 
 /obj/random/ammo
 	name = "Random Ammunition"
@@ -378,12 +378,15 @@
 	spawn_nothing_percentage = 35
 
 /obj/random/plushie/spawn_choices()
-	return list(/obj/item/toy/plushie/nymph,
-				/obj/item/toy/plushie/mouse,
-				/obj/item/toy/plushie/kitten,
-				/obj/item/toy/plushie/lizard,
-				/obj/item/toy/plushie/farwa,
-				/obj/item/toy/plushie/spider)
+	return list(
+		/obj/item/toy/plushie/nymph,
+		/obj/item/toy/plushie/mouse,
+		/obj/item/toy/plushie/kitten,
+		/obj/item/toy/plushie/lizard,
+		/obj/item/toy/plushie/farwa,
+		/obj/item/toy/plushie/spider,
+		/obj/item/toy/plushie/snail
+	)
 
 /obj/random/plushie/large
 	name = "random large plushie"
@@ -432,14 +435,14 @@
 				/obj/item/remains/xeno = 1)
 
 
-obj/random/closet //A couple of random closets to spice up maint
+/obj/random/closet //A couple of random closets to spice up maint
 	name = "random closet"
 	desc = "This is a random closet."
 	icon = 'icons/obj/closet.dmi'
 	icon_state = "syndicate1"
 	spawn_nothing_percentage = 25
 
-obj/random/closet/spawn_choices()
+/obj/random/closet/spawn_choices()
 	return list(/obj/structure/closet = 15,
 				/obj/structure/closet/firecloset = 4,
 				/obj/structure/closet/firecloset/full = 2,
@@ -546,8 +549,8 @@ obj/random/closet/spawn_choices()
 /obj/random/material //Random materials for building stuff
 	name = "random material"
 	desc = "This is a random material."
-	icon = 'icons/obj/items.dmi'
-	icon_state = "sheet-metal"
+	icon = 'icons/obj/materials.dmi'
+	icon_state = "metal"
 	spawn_nothing_percentage = 25
 
 /obj/random/material/spawn_choices()
@@ -584,14 +587,14 @@ obj/random/closet/spawn_choices()
 				/obj/item/weapon/reagent_containers/spray/cleaner = 2,
 				/obj/item/weapon/grenade/chem_grenade/cleaner = 1)
 
-obj/random/obstruction //Large objects to block things off in maintenance
+/obj/random/obstruction //Large objects to block things off in maintenance
 	name = "random obstruction"
 	desc = "This is a random obstruction."
 	icon = 'icons/obj/cult.dmi'
 	icon_state = "cultgirder"
 	spawn_nothing_percentage = 25
 
-obj/random/obstruction/spawn_choices()
+/obj/random/obstruction/spawn_choices()
 	return list(/obj/structure/barricade,
 				/obj/structure/girder,
 				/obj/structure/grille,
@@ -1179,7 +1182,7 @@ something, make sure it's not in one of the other lists.*/
 	icon_state = "standing"
 	spawn_nothing_percentage = 80
 
-obj/random/hostile/spawn_choices()
+/obj/random/hostile/spawn_choices()
 	return list(/mob/living/simple_animal/hostile/viscerator,
 				/mob/living/simple_animal/hostile/carp,
 				/mob/living/simple_animal/hostile/carp/pike,
@@ -1302,10 +1305,10 @@ var/list/random_useful_
 			random_junk_ += /obj/item/weapon/material/shard
 			random_junk_ += /obj/item/weapon/hand/missing_card
 
-			random_junk_ -= /obj/item/trash/plate
-			random_junk_ -= /obj/item/trash/snack_bowl
+			random_junk_ -= /obj/item/trash/dish/plate
+			random_junk_ -= /obj/item/trash/dish/bowl
 			random_junk_ -= /obj/item/trash/syndi_cakes
-			random_junk_ -= /obj/item/trash/tray
+			random_junk_ -= /obj/item/trash/dish/tray
 		return pick(random_junk_)
 
 	// Misc. actually useful stuff or perhaps even food

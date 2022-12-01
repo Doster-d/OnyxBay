@@ -298,7 +298,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 		else
 			HTML += addtext("<i><b>&larr; From <a href='byond://?src=\ref[src];choice=Message;notap=1;target=",index["target"],"'>", index["owner"],"</a>:</b></i><br>", index["message"], "<br>")
 	HTML +="</body></html>"
-	usr << browse(HTML, "window=log;size=400x444;border=1;can_resize=1;can_close=1;can_minimize=0")
+	show_browser(usr, HTML, "window=log;size=400x444;border=1;can_resize=1;can_close=1;can_minimize=0")
 
 
 /obj/item/device/pda/ai/can_use()
@@ -348,7 +348,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 			set_light(0)
 		else
 			fon = 1
-			set_light(f_lum)
+			set_light(0.25, 0.1, 2, 3, "#5cceed")
 
 /obj/item/device/pda/GetAccess()
 	if(id)
@@ -372,7 +372,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 	var/auto_update = 1
 	if(mode in no_auto_update)
 		auto_update = 0
-	if(old_ui && (mode == lastmode && ui_tick % 5 && mode in update_every_five))
+	if(old_ui && (mode == lastmode && ui_tick % 5 && (mode in update_every_five)))
 		return
 
 	lastmode = mode
@@ -1039,6 +1039,8 @@ var/global/list/obj/item/device/pda/PDAs = list()
 				if(ai.aiPDA != P && ai.aiPDA != src)
 					ai.show_message("<i>Intercepted message from <b>[who]</b>: [message]</i>")
 
+		U.client.spellcheck(message)
+
 		P.new_message_from_pda(src, message)
 		SSnano.update_user_uis(U, src) // Update the sending user's PDA UI so that they can see the new message
 
@@ -1079,7 +1081,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 	var/reception_message = "\icon[src] <b>Message from [sender] ([sender_job]), </b>\"[message]\" (<a href='byond://?src=\ref[src];choice=Message;skiprefresh=1;target=\ref[sending_unit]'>Reply</a>)"
 	new_info(message_silent, ttone, reception_message)
 
-	log_pda("[usr] (PDA: [sending_unit]) sent \"[message]\" to [name]")
+	log_pda("[key_name(usr)] (PDA: [sending_unit]) sent \"[message]\" to [name]")
 	new_message = 1
 	update_icon()
 
@@ -1373,12 +1375,12 @@ var/global/list/obj/item/device/pda/PDAs = list()
 	return ..()
 
 /obj/item/device/pda/clown/Crossed(AM as mob|obj) //Clown PDA is slippery.
-	if (istype(AM, /mob/living))
+	if(istype(AM, /mob/living))
 		var/mob/living/M = AM
 
-		if(M.slip("the PDA",8) && M.real_name != src.owner && istype(src.cartridge, /obj/item/weapon/cartridge/clown))
-			if(src.cartridge.charges < 5)
-				src.cartridge.charges++
+		if(M.slip_on_obj(src, 3, 3) && M.real_name != owner && istype(cartridge, /obj/item/weapon/cartridge/clown))
+			if(cartridge.charges < 5)
+				cartridge.charges++
 
 /obj/item/device/pda/proc/available_pdas()
 	var/list/names = list()

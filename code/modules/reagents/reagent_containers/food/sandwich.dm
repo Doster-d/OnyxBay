@@ -10,7 +10,7 @@
 	name = "sandwich"
 	desc = "The best thing since sliced bread."
 	icon_state = "breadslice"
-	trash = /obj/item/trash/plate
+	trash = /obj/item/trash/dish/plate
 	bitesize = 2
 
 	var/list/ingredients = list()
@@ -76,7 +76,8 @@
 /obj/item/weapon/reagent_containers/food/snacks/csandwich/Destroy()
 	for(var/obj/item/O in ingredients)
 		qdel(O)
-	..()
+
+	return ..()
 
 /obj/item/weapon/reagent_containers/food/snacks/csandwich/examine(mob/user)
 	. = ..()

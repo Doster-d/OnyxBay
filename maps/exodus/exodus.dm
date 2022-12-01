@@ -9,21 +9,15 @@
 	#include "exodus_shuttles.dm"
 	#include "exodus_jobs.dm"
 
-	#include "exodus_unit_testing.dm"
-	#include "exodus_zas_tests.dm"
-
-	#include "../shared/exodus_torch/_include.dm"
-
-	#include "exodus-1.dmm"
-	#include "exodus-2.dmm"
-	#include "exodus-3.dmm"
+	#include "dynamic/null-1.dmm"
+	#include "dynamic/null-2.dmm"
+	#include "dynamic/null-3.dmm"
 	#include "exodus-4.dmm"
 	#include "exodus-5.dmm"
-	#include "exodus-6.dmm"
+	#include "dynamic/null-6.dmm"
 	#include "exodus-7.dmm"
 	#include "derelicts/snowasteroid.dmm"
 	#include "derelicts/original/derelict.dmm"
-	#include "derelicts/casino.dmm"
 	#include "derelicts/bearcat/bearcat-1.dmm"
 	#include "derelicts/bearcat/bearcat-2.dmm"
 

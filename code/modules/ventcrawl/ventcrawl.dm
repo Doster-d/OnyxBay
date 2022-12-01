@@ -10,7 +10,8 @@ var/list/ventcrawl_machinery = list(
 	/obj/item/weapon/holder,
 	/obj/machinery/camera,
 	/mob/living/simple_animal/borer,
-	/obj/item/organ/internal/biostructure
+	/obj/item/organ/internal/biostructure,
+	/obj/effect/abstract/proximity_checker //spiderbot staff
 	)
 
 /mob/living/var/list/icon/pipes_shown = list()
@@ -36,7 +37,7 @@ var/list/ventcrawl_machinery = list(
 		remove_ventcrawl()
 		add_ventcrawl(loc)
 
-/mob/living/carbon/slime/can_ventcrawl()
+/mob/living/carbon/metroid/can_ventcrawl()
 	if(Victim)
 		to_chat(src, "<span class='warning'>You cannot ventcrawl while feeding.</span>")
 		return FALSE
@@ -50,6 +51,8 @@ var/list/ventcrawl_machinery = list(
 		to_chat(src, "<span class='warning'>You cannot ventcrawl in your current state!</span>")
 		return FALSE
 	if(isMonkey(src))
+		return TRUE
+	if(istype(species, /datum/species/xenos))
 		return TRUE
 	return ventcrawl_carry()
 

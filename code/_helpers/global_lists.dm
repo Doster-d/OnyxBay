@@ -69,6 +69,20 @@ var/global/list/string_part_flags = list(
 	"hands" = HANDS
 )
 
+var/global/list/body_part_flags = list(
+	BP_HEAD = HEAD,
+	BP_CHEST = UPPER_TORSO,
+	BP_GROIN = LOWER_TORSO,
+	BP_L_LEG = LEGS,
+	BP_R_LEG = LEGS,
+	BP_L_FOOT = FEET,
+	BP_R_FOOT = FEET,
+	BP_L_ARM = ARMS,
+	BP_R_ARM = ARMS,
+	BP_L_HAND = HANDS,
+	BP_R_HAND = HANDS
+)
+
 // Strings which corraspond to slot flags, useful for outputting what slot something is.
 var/global/list/string_slot_flags = list(
 	"back" = SLOT_BACK,
@@ -104,6 +118,8 @@ var/global/list/string_slot_flags = list(
 	return 1
 
 /proc/get_mannequin(ckey)
+	if(SSatoms.init_state < INITIALIZATION_INNEW_REGULAR)
+		return
 	if(!mannequins_)
 		mannequins_ = new()
 	. = mannequins_[ckey]
@@ -210,7 +226,7 @@ var/global/list/string_slot_flags = list(
 	for(var/T in paths)
 		var/datum/body_build/BB = new T
 		GLOB.bb_clothing_icon_states[BB.type] = list()
-		GLOB.bb_clothing_icon_states[BB.type]["hidden"]            = icon_states(BB.clothing_icons["hidden"])
+		GLOB.bb_clothing_icon_states[BB.type][slot_hidden_str]     = icon_states(BB.clothing_icons["slot_hidden"])
 		GLOB.bb_clothing_icon_states[BB.type][slot_w_uniform_str]  = icon_states(BB.clothing_icons["slot_w_uniform"])
 		GLOB.bb_clothing_icon_states[BB.type][slot_wear_suit_str]  = icon_states(BB.clothing_icons["slot_suit"])
 		GLOB.bb_clothing_icon_states[BB.type][slot_gloves_str]     = icon_states(BB.clothing_icons["slot_gloves"])

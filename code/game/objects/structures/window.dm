@@ -21,7 +21,10 @@
 	var/shardtype = /obj/item/weapon/material/shard
 	var/glasstype = null // Set this in subtypes. Null is assumed strange or otherwise impossible to dismantle, such as for shuttle glass.
 	var/silicate = 0 // number of units of silicate
+	var/real_explosion_block // ignore this, just use explosion_block
 
+	hitby_sound = "glass_hit"
+	hitby_loudness_multiplier = 2.0
 	pull_sound = "pull_stone"
 
 /obj/structure/window/examine(mob/user)
@@ -46,6 +49,9 @@
 			. += "\n<span class='notice'>It is covered in silicate.</span>"
 		else
 			. += "\n<span class='notice'>There is a thick layer of silicate covering it.</span>"
+
+/obj/structure/window/GetExplosionBlock()
+	return reinf && (state == 5) ? real_explosion_block : 0
 
 /obj/structure/window/proc/take_damage(damage = 0,  sound_effect = 1)
 	var/initialhealth = health
@@ -96,12 +102,6 @@
 	qdel(src)
 	return
 
-/obj/structure/window/blob_act(destroy)
-	if (destroy)
-		shatter()
-	else
-		take_damage(25)
-
 /obj/structure/window/bullet_act(obj/item/projectile/Proj)
 
 	var/proj_damage = Proj.get_structure_damage()
@@ -145,18 +145,39 @@
 		return !anchored // If it's anchored, it'll block air.
 	return TRUE // Don't stop airflow from the other sides.
 
+// Basically CanPass(), but also checks for diagonal movement
+// Currently only used by facehuggers
+// TODO: Expand somehow so it can be used by other projectiles as well
+//       It cannot be used in its current state because it will cause weird
+//       corner-shooting sutiations (it probably should check for connected windows)
+/obj/structure/window/proc/CanDiagonalPass(atom/movable/mover, turf/target)
+	if(istype(mover) && mover.pass_flags & PASS_FLAG_GLASS)
+		return TRUE
+	if(is_full_window())
+		return FALSE
+	var/mover_dir = get_dir(loc, target)
+	if((mover_dir & dir) || (mover_dir & turn(dir, -45)) || (mover_dir & turn(dir, 45)))
+		return !density
+	return TRUE
 
-/obj/structure/window/CheckExit(atom/movable/O as mob|obj, target as turf)
+/obj/structure/window/CheckExit(atom/movable/O, turf/target)
 	if(istype(O) && O.pass_flags & PASS_FLAG_GLASS)
 		return 1
 	if(get_dir(O.loc, target) == dir)
 		return 0
 	return 1
 
+/obj/structure/window/proc/CheckDiagonalExit(atom/movable/mover, turf/target)
+	if(istype(mover) && mover.pass_flags & PASS_FLAG_GLASS)
+		return 1
+	var/mover_dir = get_dir(mover.loc, target)
+	if((mover_dir & dir) || (turn(mover_dir, -45) & dir) || (turn(mover_dir, 45) & dir))
+		return 0
+	return 1
 
-/obj/structure/window/hitby(AM as mob|obj)
+
+/obj/structure/window/hitby(atom/movable/AM, speed, nomsg)
 	..()
-	visible_message("<span class='danger'>[src] was hit by [AM].</span>")
 	var/tforce = 0
 	if(ismob(AM)) // All mobs have a multiplier and a size according to mob_defines.dm
 		var/mob/I = AM
@@ -168,7 +189,7 @@
 	if(health - tforce <= 7 && !reinf)
 		set_anchored(FALSE)
 		step(src, get_dir(AM, src))
-	take_damage(tforce)
+	take_damage(tforce, FALSE)
 
 /obj/structure/window/attack_tk(mob/user as mob)
 	user.visible_message("<span class='notice'>Something knocks on [src].</span>")
@@ -427,6 +448,7 @@
 	name = "plass window"
 	desc = "A plasmasilicate alloy window. It seems to be quite strong."
 	basestate = "plasmawindow"
+	explosion_block = 1
 	icon_state = "plasmawindow"
 	shardtype = /obj/item/weapon/material/shard/plasma
 	glasstype = /obj/item/stack/material/glass/plass
@@ -442,6 +464,7 @@
 	shardtype = /obj/item/weapon/material/shard/plasma
 	glasstype = /obj/item/stack/material/glass/rplass
 	reinf = 1
+	explosion_block = 2
 	maximal_heat = T0C + 4000
 	damage_per_fire_tick = 1.0 // This should last for 80 fire ticks if the window is not damaged at all. The idea is that plass windows have something like ablative layer that protects them for a while.
 	maxhealth = 80.0
@@ -458,6 +481,7 @@
 	maxhealth = 40.0
 	reinf = 1
 	maximal_heat = T0C + 750
+	explosion_block = 1
 	damage_per_fire_tick = 2.0
 	glasstype = /obj/item/stack/material/glass/reinforced
 
@@ -472,6 +496,9 @@
 /obj/structure/window/Initialize()
 	. = ..()
 	layer = is_full_window() ? FULL_WINDOW_LAYER : SIDE_WINDOW_LAYER
+	// windows only block while reinforced and fulltile, so we'll use the proc
+	real_explosion_block = explosion_block
+	explosion_block = EXPLOSION_BLOCK_PROC
 
 /obj/structure/window/reinforced/full
 	dir = 5
@@ -497,6 +524,7 @@
 	icon = 'icons/obj/podwindows.dmi'
 	icon_state = "window"
 	basestate = "window"
+	explosion_block = 3
 	maxhealth = 40
 	reinf = 1
 	basestate = "w"
@@ -510,6 +538,7 @@
 	basestate = "window-mine"
 	reinf = 1
 	maxhealth = 40
+	explosion_block = 3
 	dir = 5
 
 /obj/structure/window/research
@@ -520,6 +549,7 @@
 	basestate = "window-res"
 	reinf = 1
 	maxhealth = 40
+	explosion_block = 3
 	dir = 5
 
 /obj/structure/window/reinforced/polarized
