@@ -49,7 +49,7 @@
 	name = "NanoTrasen brand lunchbox"
 	icon_state = "lunchbox_nanotrasen"
 	item_state = "toolbox_blue"
-	desc = "A little lunchbox. This one is branded with the Nanotrasen logo!"
+	desc = "A little lunchbox. This one is branded with the NanoTrasen logo!"
 
 /obj/item/storage/lunchbox/nt/filled
 	filled = TRUE
@@ -98,4 +98,3 @@
 
 /obj/item/storage/lunchbox/syndicate/filled
 	filled = TRUE
-

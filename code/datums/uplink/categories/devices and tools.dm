@@ -67,7 +67,7 @@
 	name = "Space Suit"
 	desc = "A complete, red space suit. This suit's movement penalties are fewer than an EVA space suit and it is decently armored! \
 			Useful if you need to hide in a vacuum. They can also hold a wide selection of items in suit storage. \
-			Comes packaged with internals. Be careful, Nanotrasen crewmembers are trained to report red space suit sightings."
+			Comes packaged with internals. Be careful, NanoTrasen crewmembers are trained to report red space suit sightings."
 	item_cost = 3
 	path = /obj/item/storage/backpack/satchel/syndie_kit/space
 

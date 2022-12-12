@@ -111,7 +111,7 @@
 //Commander
 /obj/item/clothing/suit/armor/vest/ert
 	name = "ERT commander armor"
-	desc = "A set of armor worn by Nanotrasen's elite Emergency Response Teams. Has blue highlights."
+	desc = "A set of armor worn by NanoTrasen's elite Emergency Response Teams. Has blue highlights."
 	icon_state = "ertarmor_cmd"
 	item_state = "armor"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS

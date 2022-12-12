@@ -127,7 +127,7 @@
 	dead_icon = "ai-mono_dead"
 
 /datum/ai_icon/nanotrasen
-	name = "Nanotrasen"
+	name = "NanoTrasen"
 	alive_icon = "ai-nanotrasen"
 	alive_light = "#000029"
 

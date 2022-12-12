@@ -96,7 +96,7 @@ var/const/MAP_HAS_RANK = 2		//Rank system, also togglable
 
 	//Factions prefs stuff
 	var/list/background_choices = list(
-		"Nanotrasen",
+		"NanoTrasen",
 		"Nova Magnitka",
 		"Gaia Magna",
 		"Zeng-Hu Clique",

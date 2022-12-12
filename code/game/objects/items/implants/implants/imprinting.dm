@@ -15,7 +15,7 @@
 	<b>Special Features:</b> Do NOT implant if subject is under effect of any mind-altering drugs.
 	It carries risk of over-tuning, making subject unable to question the suggestions received, treating them as beliefs they feel strongly about.<BR>
 	It is HIGLY ILLEGAL and NanoTrasen does NOT endorse use of this device in such way.
-	Any amount of Nanotrasen brand "Mind-Breaker"(TM) present in bloodstream will trigger this side-effect.<BR>"}
+	Any amount of NanoTrasen brand "Mind-Breaker"(TM) present in bloodstream will trigger this side-effect.<BR>"}
 	. += "<HR><B>Instructions:</B><BR>"
 	for(var/i = 1 to instructions.len)
 		. += "- [instructions[i]] <A href='byond://?src=\ref[src];edit=[i]'>Edit</A> <A href='byond://?src=\ref[src];del=[i]'>Remove</A><br>"
