@@ -323,3 +323,6 @@
 
 // Shortcut for image_repository.overlay_image(...)
 #define OVERLAY(args...) image_repository.overlay_image(args)
+
+/// Until a condition is true, sleep
+#define UNTIL(X) while(!(X)) stoplag()

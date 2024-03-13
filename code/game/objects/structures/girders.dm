@@ -254,6 +254,13 @@
 	new /obj/item/stack/gassembly(get_turf(src))
 	qdel(src)
 
+/obj/structure/girder/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	if(!density)
+		return TRUE
+	if(pass_info.pass_flags & PASS_FLAG_GRILLE)
+		return TRUE
+	return FALSE
+
 /obj/structure/girder/attack_hand(mob/user as mob)
 	if(MUTATION_HULK in user.mutations)
 		user.visible_message(SPAN("danger", "[user] smashes \the [src] apart!"), \

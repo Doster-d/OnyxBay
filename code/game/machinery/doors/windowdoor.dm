@@ -291,6 +291,10 @@
 
 	return FALSE
 
+//used in the AStar algorithm to determinate if the turf the door is on is passable
+/obj/machinery/door/window/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	return !density || (dir != to_dir) || (check_access_list(pass_info.access) && !pass_info.no_id)
+
 /obj/machinery/door/window/brigdoor
 	name = "secure door"
 	icon = 'icons/obj/doors/windoor.dmi'

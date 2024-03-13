@@ -15,7 +15,7 @@
 	appearance_flags = DEFAULT_APPEARANCE_FLAGS | LONG_GLIDE
 
 	var/driving = 0
-	var/mob/living/pulling = null
+	var/mob/living/pulling_mob = null
 	var/bloodiness
 
 /obj/structure/bed/chair/wheelchair/on_update_icon()
@@ -38,30 +38,30 @@
 /obj/structure/bed/chair/wheelchair/relaymove(mob/user, direction)
 	// Redundant check?
 	if(user.stat || user.stunned || user.weakened || user.paralysis || user.lying || user.restrained())
-		if(user==pulling)
-			pulling = null
+		if(user==pulling_mob)
+			pulling_mob = null
 			user.pulledby = null
 			to_chat(user, "<span class='warning'>You lost your grip!</span>")
 		return
-	if(buckled_mob && pulling && user == buckled_mob)
-		if(pulling.stat || pulling.stunned || pulling.weakened || pulling.paralysis || pulling.lying || pulling.restrained())
-			pulling.pulledby = null
-			pulling = null
-	if(user.pulling && (user == pulling))
-		pulling = null
+	if(buckled_mob && pulling_mob && user == buckled_mob)
+		if(pulling_mob.stat || pulling_mob.stunned || pulling_mob.weakened || pulling_mob.paralysis || pulling_mob.lying || pulling_mob.restrained())
+			pulling_mob.pulledby = null
+			pulling_mob = null
+	if(user.pulling && (user == pulling_mob))
+		pulling_mob = null
 		user.pulledby = null
 		return
 	if(propelled)
 		return
-	if(pulling && (get_dist(src, pulling) > 1))
-		pulling = null
+	if(pulling_mob && (get_dist(src, pulling_mob) > 1))
+		pulling_mob = null
 		user.pulledby = null
-		if(user==pulling)
+		if(user==pulling_mob)
 			return
-	if(pulling && (get_dir(src.loc, pulling.loc) == direction))
+	if(pulling_mob && (get_dir(src.loc, pulling_mob.loc) == direction))
 		to_chat(user, "<span class='warning'>You cannot go there.</span>")
 		return
-	if(pulling && buckled_mob && (buckled_mob == user))
+	if(pulling_mob && buckled_mob && (buckled_mob == user))
 		to_chat(user, "<span class='warning'>You cannot drive while being pushed.</span>")
 		return
 
@@ -74,24 +74,24 @@
 		step(buckled_mob, direction)
 		buckled_mob.buckled = src
 	//--2----Move driver----2--//
-	if(pulling)
-		T = pulling.loc
-		if(get_dist(src, pulling) >= 1)
-			step(pulling, get_dir(pulling.loc, src.loc))
+	if(pulling_mob)
+		T = pulling_mob.loc
+		if(get_dist(src, pulling_mob) >= 1)
+			step(pulling_mob, get_dir(pulling_mob.loc, src.loc))
 	//--3--Move wheelchair--3--//
 	step(src, direction)
 	if(buckled_mob) // Make sure it stays beneath the occupant
 		Move(buckled_mob.loc)
 	set_dir(direction)
-	if(pulling) // Driver
-		if(pulling.loc == src.loc) // We moved onto the wheelchair? Revert!
-			pulling.forceMove(T)
+	if(pulling_mob) // Driver
+		if(pulling_mob.loc == src.loc) // We moved onto the wheelchair? Revert!
+			pulling_mob.forceMove(T)
 		else
 			spawn(0)
-			if(get_dist(src, pulling) > 1) // We are too far away? Losing control.
-				pulling = null
+			if(get_dist(src, pulling_mob) > 1) // We are too far away? Losing control.
+				pulling_mob = null
 				user.pulledby = null
-			pulling.set_dir(get_dir(pulling, src)) // When everything is right, face the wheelchair
+			pulling_mob.set_dir(get_dir(pulling_mob, src)) // When everything is right, face the wheelchair
 	if(bloodiness)
 		create_track()
 	driving = 0
@@ -108,16 +108,16 @@
 							Bump(O)
 				else
 					unbuckle_mob()
-			if (pulling && (get_dist(src, pulling) > 1))
-				pulling.pulledby = null
-				to_chat(pulling, "<span class='warning'>You lost your grip!</span>")
-				pulling = null
+			if (pulling_mob && (get_dist(src, pulling_mob) > 1))
+				pulling_mob.pulledby = null
+				to_chat(pulling_mob, "<span class='warning'>You lost your grip!</span>")
+				pulling_mob = null
 		else
 			if (occupant && (src.loc != occupant.loc))
 				src.forceMove(occupant.loc) // Failsafe to make sure the wheelchair stays beneath the occupant after driving
 
 /obj/structure/bed/chair/wheelchair/attack_hand(mob/living/user as mob)
-	if (pulling)
+	if (pulling_mob)
 		MouseDrop(usr)
 	else
 		user_unbuckle_mob(user)
@@ -130,8 +130,8 @@
 		if(user == buckled_mob)
 			to_chat(user, "<span class='warning'>You realize you are unable to push the wheelchair you sit in.</span>")
 			return
-		if(!pulling)
-			pulling = user
+		if(!pulling_mob)
+			pulling_mob = user
 			user.pulledby = src
 			if(user.pulling)
 				user.stop_pulling()
@@ -139,19 +139,19 @@
 			to_chat(user, "You grip \the [name]'s handles.")
 		else
 			to_chat(usr, "You let go of \the [name]'s handles.")
-			pulling.pulledby = null
-			pulling = null
+			pulling_mob.pulledby = null
+			pulling_mob = null
 		return
 
 /obj/structure/bed/chair/wheelchair/Bump(atom/A)
 	..()
 	if(!buckled_mob)	return
 
-	if(propelled || (pulling && (pulling.a_intent == I_HURT)))
+	if(propelled || (pulling_mob && (pulling_mob.a_intent == I_HURT)))
 		var/mob/living/occupant = unbuckle_mob()
 
-		if (pulling && (pulling.a_intent == I_HURT))
-			occupant.throw_at(A, 3, 1, pulling)
+		if (pulling_mob && (pulling_mob.a_intent == I_HURT))
+			occupant.throw_at(A, 3, 1, pulling_mob)
 		else if (propelled)
 			occupant.throw_at(A, 3, 1)
 
@@ -171,9 +171,9 @@
 			victim.apply_effect(6, WEAKEN, blocked)
 			victim.apply_effect(6, STUTTER, blocked)
 			victim.apply_damage(10, BRUTE, def_zone, blocked)
-		if(pulling)
-			occupant.visible_message("<span class='danger'>[pulling] has thrusted \the [name] into \the [A], throwing \the [occupant] out of it!</span>")
-			admin_attack_log(pulling, occupant, "Crashed their victim into \an [A].", "Was crashed into \an [A].", "smashed into \the [A] using")
+		if(pulling_mob)
+			occupant.visible_message("<span class='danger'>[pulling_mob] has thrusted \the [name] into \the [A], throwing \the [occupant] out of it!</span>")
+			admin_attack_log(pulling_mob, occupant, "Crashed their victim into \an [A].", "Was crashed into \an [A].", "smashed into \the [A] using")
 		else
 			occupant.visible_message("<span class='danger'>[occupant] crashed into \the [A]!</span>")
 
@@ -197,8 +197,8 @@
 	return ..()
 
 /obj/structure/bed/chair/wheelchair/buckle_mob(mob/M as mob, mob/user as mob)
-	if(M == pulling)
-		pulling = null
+	if(M == pulling_mob)
+		pulling_mob = null
 		usr.pulledby = null
 	..()
 	if(ishuman(M))

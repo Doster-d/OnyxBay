@@ -34,6 +34,11 @@
 		return !density
 	return TRUE
 
+/obj/structure/railing/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	if(!(to_dir & dir))
+		return TRUE
+	return ..()
+
 /obj/structure/railing/_examine_text(mob/user)
 	. = ..()
 	if(health < maxhealth)

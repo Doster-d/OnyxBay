@@ -25,6 +25,13 @@
 /obj/structure/grille/Bumped(atom/user)
 	if(ismob(user)) shock(user, 70)
 
+/obj/structure/grille/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	if(!density)
+		return TRUE
+	if(pass_info.pass_flags & PASS_FLAG_GRILLE)
+		return TRUE
+	return FALSE
+
 /obj/structure/grille/attack_hand(mob/user as mob)
 
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)

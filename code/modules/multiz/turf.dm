@@ -33,6 +33,7 @@
 	density = 0
 	pathweight = 100000 //Seriously, don't try and path over this one numbnuts
 
+	pathing_pass_method = TURF_PATHING_PASS_NO
 	var/turf/below
 
 /turf/simulated/open/post_change()

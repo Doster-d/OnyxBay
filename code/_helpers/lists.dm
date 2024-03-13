@@ -85,6 +85,34 @@
 /// Passed into BINARY_INSERT to compare values
 #define COMPARE_VALUE __BIN_LIST[__BIN_LIST[__BIN_MID]]
 
+// Generic listoflist safe add and removal macros:
+///If value is a list, wrap it in a list so it can be used with list add/remove operations
+#define LIST_VALUE_WRAP_LISTS(value) (islist(value) ? list(value) : value)
+///Add an untyped item to a list, taking care to handle list items by wrapping them in a list to remove the footgun
+#define UNTYPED_LIST_ADD(list, item) (list += LIST_VALUE_WRAP_LISTS(item))
+///Remove an untyped item to a list, taking care to handle list items by wrapping them in a list to remove the footgun
+#define UNTYPED_LIST_REMOVE(list, item) (list -= LIST_VALUE_WRAP_LISTS(item))
+
+///Copies a list, and all lists inside it recusively
+///Does not copy any other reference type
+/proc/deep_copy_list(list/inserted_list)
+	if(!islist(inserted_list))
+		return inserted_list
+	. = inserted_list.Copy()
+	for(var/i in 1 to inserted_list.len)
+		var/key = .[i]
+		if(isnum(key))
+			// numbers cannot ever be associative keys
+			continue
+		var/value = .[key]
+		if(islist(value))
+			value = deep_copy_list(value)
+			.[key] = value
+		if(islist(key))
+			key = deep_copy_list(key)
+			.[i] = key
+			.[key] = value
+
 //Returns a list in plain english as a string
 /proc/english_list(list/input, nothing_text = "nothing", and_text = " and ", comma_text = ", ", final_comma_text = "")
 	switch(input.len)
@@ -187,6 +215,13 @@
 	else
 		result = first ^ second
 	return result
+
+/// Turns an associative list into a flat list of keys
+/proc/assoc_to_keys(list/input)
+	var/list/keys = list()
+	for(var/key in input)
+		UNTYPED_LIST_ADD(keys, key)
+	return keys
 
 /proc/assoc_merge_add(value_a, value_b)
 	return value_a + value_b

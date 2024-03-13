@@ -107,6 +107,13 @@
 			if(0.5 to 1.0)
 				. += "\n<span class='notice'>It has a few scrapes and dents.</span>"
 
+/obj/structure/table/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	if(!density)
+		return TRUE
+	if(pass_info.pass_flags & PASS_FLAG_TABLE)
+		return TRUE
+	return FALSE
+
 /obj/structure/table/attackby(obj/item/W, mob/user)
 
 	if(reinforced && isScrewdriver(W))

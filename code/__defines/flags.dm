@@ -41,8 +41,24 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define ITEM_FLAG_PREMODIFIED            0x0400 // Gloves that are clipped by default
 #define ITEM_FLAG_IS_BELT                0x0800 // Items that can be worn on the belt slot, even with no undersuit equipped
 
-// Flags for pass_flags.
-#define PASS_FLAG_TABLE  0x1
-#define PASS_FLAG_GLASS  0x2
-#define PASS_FLAG_GRILLE 0x4
-#define PASS_FLAG_MOB    0x8
+/*
+	These defines are used specifically with the atom/pass_flags bitmask
+	the atom/checkpass() proc uses them (tables will call movable atom checkpass(PASSTABLE) for example)
+*/
+//flags for pass_flags
+#define PASS_FLAG_TABLE (1<<0)
+#define PASS_FLAG_GLASS (1<<1)
+#define PASS_FLAG_GRILLE (1<<2)
+#define PASS_FLAG_BLOB (1<<3)
+#define PASS_FLAG_MOB (1<<4)
+#define PASS_FLAG_CLOSED_TURF (1<<5)
+/// Let thrown things past us. **ONLY MEANINGFUL ON pass_flags_self!**
+#define LETPASSTHROW (1<<6)
+#define PASS_FLAG_MACHINE (1<<7)
+#define PASS_FLAG_STRUCTURE (1<<8)
+#define PASS_FLAG_FLAPS (1<<9)
+#define PASS_FLAG_DOORS (1<<10)
+#define PASS_FLAG_VEHICLE (1<<11)
+#define PASS_FLAG_ITEM (1<<12)
+/// Do not intercept click attempts during Adjacent() checks. See [turf/proc/ClickCross]. **ONLY MEANINGFUL ON pass_flags_self!**
+#define LETPASSCLICKS (1<<13)

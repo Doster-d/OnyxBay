@@ -134,6 +134,20 @@
 				shatter(0)
 				return
 
+//TODO: Make full windows a separate type of window.
+//Once a full window, it will always be a full window, so there's no point
+//having the same type for both.
+/obj/structure/window/proc/is_full_window()
+	return (dir == SOUTHWEST || dir == SOUTHEAST || dir == NORTHWEST || dir == NORTHEAST)
+
+/obj/structure/window/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	if(!density)
+		return TRUE
+	if(dir == to_dir)
+		return FALSE
+
+	return TRUE
+
 /obj/structure/window/CanPass(atom/movable/mover, turf/target)
 	if(istype(mover) && mover.pass_flags & PASS_FLAG_GLASS)
 		return TRUE

@@ -990,6 +990,10 @@ About the new airlock wires panel:
 		. += "\n\The [brace] is installed on \the [src], preventing it from opening."
 		. += "\n[brace.examine_health()]"
 
+/obj/machinery/door/airlock/CanAStarPass/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	//Airlock is passable if it is open (!density), bot has access, and is not bolted shut or powered off)
+	return !density || (check_access_list(pass_info.access) && !locked && !isAllPowerLoss() && !pass_info.no_id)
+
 /obj/machinery/door/airlock/autoname
 	name = "hatch"
 	icon = 'icons/obj/doors/doorhatchmaint2.dmi'

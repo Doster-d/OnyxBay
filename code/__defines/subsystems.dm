@@ -42,6 +42,7 @@
 #define SS_INIT_BAY_LEGACY      -12
 #define SS_INIT_STORYTELLER     -15
 #define SS_INIT_TICKER          -20
+#define SS_INIT_ORDER_PATH      -50
 #define SS_INIT_EXPLOSIONS      -69
 #define SS_INIT_ANNOUNCERS      -90
 #define SS_INIT_VOTE      		-95

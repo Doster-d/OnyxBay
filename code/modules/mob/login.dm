@@ -44,6 +44,7 @@
 /mob/Login()
 	CAN_BE_REDEFINED(TRUE)
 	SHOULD_CALL_PARENT(TRUE)
+	. = ..()
 	if(!client)
 		return
 

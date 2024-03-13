@@ -45,6 +45,9 @@
 	/// but is now destroyed, this will preserve the value.
 	/// See __DEFINES/construction.dm for RCD_MEMORY_*.
 	var/rcd_memory
+	/// How pathing algorithm will check if this turf is passable by itself (not including content checks). By default it's just density check.
+	/// WARNING: Currently to use a density shortcircuiting this does not support dense turfs with special allow through function
+	var/pathing_pass_method = TURF_PATHING_PASS_DENSITY
 
 /turf/Initialize(mapload, ...)
 	. = ..()

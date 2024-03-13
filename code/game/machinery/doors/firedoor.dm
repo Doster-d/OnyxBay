@@ -436,6 +436,9 @@
 	if(changed)
 		update_icon()
 
+/obj/machinery/door/firedoor/border_only/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
+	return !density || (dir != to_dir)
+
 //These are playing merry hell on ZAS.  Sorry fellas :(
 
 /obj/machinery/door/firedoor/border_only
