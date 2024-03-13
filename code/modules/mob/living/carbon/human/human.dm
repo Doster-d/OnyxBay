@@ -1111,6 +1111,12 @@
 	to_world_log("Can't find possible body_build. Gender = [gender], Species = [species]")
 	return 0
 
+/mob/living/carbon/human/pointed(atom/A as mob|obj|turf in view(client.view, src))
+	if(A in organs)
+		return
+
+	return ..()
+
 /mob/living/carbon/human/proc/bloody_doodle()
 	set category = "IC"
 	set name = "Write in blood"

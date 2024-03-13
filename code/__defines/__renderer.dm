@@ -128,6 +128,7 @@
 	//FLY_LAYER                          5
 	#define CHAT_LAYER                  5.0001
 	#define CHAT_LAYER_MAX              5.9999
+	#define POINT_PLANE					5
 	//OBSERVER
 	#define OBSERVER_LAYER              5.1
 

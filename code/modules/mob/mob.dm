@@ -1,3 +1,5 @@
+#define POINT_TIME (2 SECONDS)
+
 /mob/Destroy()//This makes sure that mobs with clients/keys are not just deleted from the game.
 	STOP_PROCESSING(SSmobs, src)
 
@@ -297,7 +299,7 @@
 
 	if(last_time_pointed_at + 2 SECONDS >= world.time)
 		return
-	if(!src || !isturf(src.loc) || !(A in view(src.loc)))
+	if(!src || !(A in view(client?.view, src)))
 		return 0
 	if(istype(A, /obj/effect/decal/point))
 		return 0
@@ -308,13 +310,52 @@
 
 	last_time_pointed_at = world.time
 
+	if(A in src)
+		create_point_bubble(A)
+		return
+
 	var/obj/P = new /obj/effect/decal/point(tile)
 	P.set_invisibility(invisibility)
 	P.pixel_x = A.pixel_x
 	P.pixel_y = A.pixel_y
-	QDEL_IN(P, 2 SECONDS)
+	QDEL_IN(P, POINT_TIME)
 	face_atom(A)
 	return 1
+
+/atom/movable/proc/create_point_bubble(atom/pointed_atom)
+	var/mutable_appearance/thought_bubble = mutable_appearance(
+		'icons/effects/effects.dmi',
+		"thought_bubble",
+		plane = POINT_PLANE,
+		flags = KEEP_APART,
+	)
+
+	var/mutable_appearance/pointed_atom_appearance = new(pointed_atom.appearance)
+	pointed_atom_appearance.blend_mode = BLEND_INSET_OVERLAY
+	pointed_atom_appearance.plane = FLOAT_PLANE
+	pointed_atom_appearance.layer = FLOAT_LAYER
+	pointed_atom_appearance.pixel_x = 0
+	pointed_atom_appearance.pixel_y = 0
+	thought_bubble.overlays += pointed_atom_appearance
+
+	pointed_atom_appearance.filters.Cut()
+
+	thought_bubble.pixel_x = 16
+	thought_bubble.pixel_y = 32
+	thought_bubble.alpha = 200
+
+	var/mutable_appearance/point_visual = mutable_appearance(
+		'icons/effects/effects.dmi',
+		"arrow"
+	)
+
+	thought_bubble.overlays += point_visual
+
+	AddOverlays(thought_bubble)
+	addtimer(CALLBACK(src, .proc/clear_point_bubble, thought_bubble), POINT_TIME)
+
+/atom/movable/proc/clear_point_bubble(mutable_appearance/thought_bubble)
+	CutOverlays(thought_bubble)
 
 //Gets the mob grab conga line.
 /mob/proc/ret_grab(list/L)
@@ -1181,3 +1222,5 @@
 		set_sight(sight&(~SEE_BLACKNESS))
 	else
 		set_sight(sight|SEE_BLACKNESS)
+
+#undef POINT_TIME
