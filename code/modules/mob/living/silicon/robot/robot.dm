@@ -113,6 +113,8 @@
 	)
 
 /mob/living/silicon/robot/New(loc, unfinished = 0)
+	var/datum/component/holomarker/toggleable/H = AddComponent(/datum/component/holomarker/toggleable)
+	H.should_have_legend = TRUE
 	spark_system = new /datum/effect/effect/system/spark_spread()
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
@@ -378,6 +380,16 @@
 			flavor_text = module_flavour
 		else
 			flavor_text = client.prefs.flavour_texts_robot["Default"]
+
+/mob/living/silicon/robot/verb/ShowMiniMap()
+	set category = "Silicon Commands"
+	set name = "Show MiniMap"
+
+	var/datum/component/holomarker/toggleable/H = get_component(/datum/component/holomarker/toggleable)
+	if(isnull(H))
+		return
+
+	H.toggle(src)
 
 /mob/living/silicon/robot/verb/Namepick()
 	set category = "Silicon Commands"
