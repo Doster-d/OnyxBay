@@ -33,18 +33,11 @@
 		return
 
 	if(isWelder(thing) && construction_stage == 4)
-		var/obj/item/weldingtool/welder = thing
-
-		if(!welder.isOn())
-			to_chat(user, "<span class='warning'>Turn it on first!</span>")
-			return
-
-		if(!welder.remove_fuel(0,user))
-			to_chat(user, "<span class='warning'>You need more fuel!</span>")
+		var/obj/item/weldingtool/WT = thing
+		if(!WT.use_tool(src, user, amount = 1))
 			return
 
 		user.visible_message("<span class='notice'>\The [user] welds the barrel of \the [src] into place.</span>")
-		playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
 		increment_construction_stage()
 		return
 
@@ -85,15 +78,16 @@
 		construction_stage++
 	icon_state = "coilgun_construction_[construction_stage]"
 
-/obj/item/coilgun_assembly/_examine_text(mob/user)
+/obj/item/coilgun_assembly/examine(mob/user, infix)
 	. = ..()
+
 	if(get_dist(src, user) <= 2)
 		switch(construction_stage)
-			if(2) . += "\n<span class='notice'>It has a metal frame loosely shaped around the stock.</span>"
-			if(3) . += "\n<span class='notice'>It has a metal frame duct-taped to the stock.</span>"
-			if(4) . += "\n<span class='notice'>It has a length of pipe attached to the body.</span>"
-			if(4) . += "\n<span class='notice'>It has a length of pipe welded to the body.</span>"
-			if(6) . += "\n<span class='notice'>It has a cable mount and capacitor jack wired to the frame.</span>"
-			if(7) . += "\n<span class='notice'>It has a single superconducting coil threaded onto the barrel.</span>"
-			if(8) . += "\n<span class='notice'>It has a pair of superconducting coils threaded onto the barrel.</span>"
-			if(9) . += "\n<span class='notice'>It has three superconducting coils attached to the body, waiting to be secured.</span>"
+			if(2) . += SPAN_NOTICE("It has a metal frame loosely shaped around the stock.")
+			if(3) . += SPAN_NOTICE("It has a metal frame duct-taped to the stock.")
+			if(4) . += SPAN_NOTICE("It has a length of pipe attached to the body.")
+			if(4) . += SPAN_NOTICE("It has a length of pipe welded to the body.")
+			if(6) . += SPAN_NOTICE("It has a cable mount and capacitor jack wired to the frame.")
+			if(7) . += SPAN_NOTICE("It has a single superconducting coil threaded onto the barrel.")
+			if(8) . += SPAN_NOTICE("It has a pair of superconducting coils threaded onto the barrel.")
+			if(9) . += SPAN_NOTICE("It has three superconducting coils attached to the body, waiting to be secured.")

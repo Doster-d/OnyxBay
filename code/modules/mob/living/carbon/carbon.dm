@@ -47,7 +47,7 @@
 	set_nutrition(300)
 	..()
 
-/mob/living/carbon/Move(NewLoc, direct)
+/mob/living/carbon/Move(newloc, direct)
 	. = ..()
 	if(!.)
 		return
@@ -56,6 +56,7 @@
 		remove_nutrition(min(nutrition, DEFAULT_HUNGER_FACTOR / 10))
 		if(m_intent == M_RUN)
 			remove_nutrition(min(nutrition, DEFAULT_HUNGER_FACTOR / 10))
+
 	if((MUTATION_FAT in mutations) && m_intent == M_RUN && bodytemperature <= 360)
 		bodytemperature += 2
 
@@ -296,6 +297,10 @@
 	return
 
 /mob/living/carbon/throw_item(atom/target)
+	THROTTLE(cooldown, 0.2 SECONDS)
+	if(!cooldown)
+		return
+
 	throw_mode_off()
 	if(!isturf(loc))
 		return

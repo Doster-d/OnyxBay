@@ -9,12 +9,18 @@
 		add_to_living_mob_list()
 
 	if(give_ghost_proc_at_initialize)
-		verbs |= /mob/living/proc/ghost
+		grant_verb(src, /mob/living/proc/ghost)
 
 	if(controllable)
 		GLOB.available_mobs_for_possess["\ref[src]"] += src
 
 	update_transform() // Some mobs may start bigger or smaller than normal.
+
+/mob/living/get_description_fluff()
+	if(flavor_text)
+		return flavor_text
+
+	return ..()
 
 //mob verbs are faster than object verbs. See mob/verb/examine.
 /mob/living/verb/pulled(atom/movable/AM as mob|obj in oview(1))
@@ -524,7 +530,7 @@
 
 	return
 
-/mob/living/Move(a, b, flag)
+/mob/living/Move(newloc, direct)
 	if(buckled)
 		return
 
@@ -533,14 +539,13 @@
 
 	var/turf/old_loc = get_turf(src)
 
-	if(lying)
-		pull_sound = SFX_PULL_BODY
-	else
-		pull_sound = null
+	pull_sound = lying ? SFX_PULL_BODY : null
 
 	. = ..()
+	if(!.)
+		return
 
-	if(. && pulling)
+	if(pulling)
 		handle_pulling_after_move(old_loc)
 
 	if(s_active && !((s_active in contents) || Adjacent(s_active)))

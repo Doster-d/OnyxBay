@@ -111,7 +111,7 @@
 
 	handcuffs = new(src)
 
-	src.verbs |= secbot_verbs_default
+	grant_verb(src, secbot_verbs_default)
 
 	hud_list[ID_HUD]          = new /image/hud_overlay('icons/mob/huds/hud.dmi', src, "hudblank")
 	hud_list[WANTED_HUD]      = new /image/hud_overlay('icons/mob/huds/hud.dmi', src, "hudblank")
@@ -372,10 +372,12 @@
 	..()
 	if(isWelder(O) && !build_step)
 		var/obj/item/weldingtool/WT = O
-		if(WT.remove_fuel(0, user))
-			build_step = 1
-			AddOverlays(image('icons/obj/aibots.dmi', "hs_hole"))
-			to_chat(user, "You weld a hole in \the [src].")
+		if(!WT.use_tool(src, user, amount = 1))
+			return
+
+		build_step = 1
+		AddOverlays(image('icons/obj/aibots.dmi', "hs_hole"))
+		to_chat(user, "You weld a hole in \the [src].")
 
 	else if(isprox(O) && (build_step == 1))
 		if(!user.drop(O))
@@ -467,44 +469,6 @@
 		process_sec_hud(src,1)
 	if(!client && prob(10))
 		to_chat(src, SPAN_NOTICE("...[pick(secbot_dreams)]..."))
-
-/mob/living/bot/secbot/Stat()
-	..()
-	if(statpanel("Status"))
-		stat(null,"-------------")
-		switch(emagged)
-			if(0)
-				stat(null,"Threat identifier status: Normal")
-			if(1)
-				stat(null,"Threat identifier status: Scrambled (DANGER)")
-			if(2)
-				stat(null,"Threat identifier status: ERROROROROROR-----")
-		if(idcheck)
-			stat(null,"Check for weapon authorization: Yes")
-		else
-			stat(null,"Check for weapon authorization: No")
-
-		if(check_records)
-			stat(null,"Check security records:: Yes")
-		else
-			stat(null,"Check security records:: No")
-
-		if(check_arrest)
-			stat(null,"Check arrest status: Yes")
-		else
-			stat(null,"Check arrest status: No")
-
-		if(declare_arrests)
-			stat(null,"Report arrests: Yes")
-		else
-			stat(null,"Report arrests: No")
-
-		if(will_patrol)
-			stat(null,"Auto patrol: On")
-		else
-			stat(null,"Auto patrol: Off")
-
-		stat(null,"-------------")
 
 //**///////////////////////////////////////////////////////////**//
 //**///////////////////////////BOOPSKY/////////////////////////**//

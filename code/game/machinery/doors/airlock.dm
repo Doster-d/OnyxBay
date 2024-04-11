@@ -523,21 +523,20 @@ About the new airlock wires panel:
 	var/cut_sound
 
 	if(isWelder(item))
-		var/obj/item/weldingtool/WT = item
-		if(!WT.isOn())
-			return 0
-		if(!WT.remove_fuel(0,user))
-			to_chat(user, "<span class='notice'>You need more welding fuel to complete this task.</span>")
-			return 0
+		cut_sound = null
 		cut_verb = "cutting"
-		cut_sound = 'sound/items/Welder.ogg'
 
 	else if(istype(item,/obj/item/gun/energy/plasmacutter)) //They could probably just shoot them out, but who cares!
 		cut_verb = "cutting"
 		cut_sound = 'sound/items/Welder.ogg'
 		cut_delay *= 0.66
 
-	else if(istype(item,/obj/item/melee/energy/blade) || istype(item,/obj/item/melee/energy/sword))
+	else if(istype(item, /obj/item/melee/energy/blade) || istype(item, /obj/item/melee/energy/sword))
+		var/obj/item/melee/energy/E = item
+		if(!E.active)
+			show_splash_text(user, "blade must be on!", "\The [item] must be activated!")
+			return FALSE
+
 		cut_verb = "slicing"
 		cut_sound = "spark"
 		cut_delay *= 0.66
@@ -572,8 +571,13 @@ About the new airlock wires panel:
 			"<span class='notice'>You begin [cut_verb] through the bolt cover.</span>"
 			)
 
-		playsound(src, cut_sound, 100, 1)
-		if(do_after(user, cut_delay, src))
+		if(!isnull(cut_sound))
+			playsound(src, cut_sound, 100, 1)
+		var/obj/item/weldingtool/WT = item
+		if((!istype(WT) && do_after(user, cut_delay, src)) || (istype(WT) && WT.use_tool(src, user, delay = cut_delay, amount = 5)))
+			if(QDELETED(src))
+				return
+
 			user.visible_message(
 				"<span class='notice'>\The [user] removes the bolt cover from [src]</span>",
 				"<span class='notice'>You remove the cover and expose the door bolts.</span>"
@@ -586,8 +590,10 @@ About the new airlock wires panel:
 			"<span class='notice'>\The [user] begins [cut_verb] through [src]'s bolts.</span>",
 			"<span class='notice'>You begin [cut_verb] through the door bolts.</span>"
 			)
-		playsound(src, cut_sound, 100, 1)
-		if(do_after(user, cut_delay, src))
+		if(!isnull(cut_sound))
+			playsound(src, cut_sound, 100, 1)
+		var/obj/item/weldingtool/WT = item
+		if((!istype(WT) && do_after(user, cut_delay, src)) || (istype(WT) && WT.use_tool(src, user, delay = cut_delay, amount = 5)))
 			user.visible_message(
 				"<span class='notice'>\The [user] severs the door bolts, unlocking [src].</span>",
 				"<span class='notice'>You sever the door bolts, unlocking the door.</span>"
@@ -635,16 +641,14 @@ About the new airlock wires panel:
 
 	if(!repairing && isWelder(C) && !(operating > 0) && density)
 		var/obj/item/weldingtool/W = C
-		if(W.remove_fuel(0, user))
-			if(!welded)
-				welded = TRUE
-			else
-				src.welded = null
-			playsound(src, 'sound/items/Welder.ogg', 100, 1)
-			update_icon()
+		if(!W.use_tool(src, user, amount = 1))
 			return
+
+		if(!welded)
+			welded = TRUE
 		else
-			return
+			welded = null
+		update_icon()
 
 	else if(isScrewdriver(C))
 		if(p_open)
@@ -980,15 +984,16 @@ About the new airlock wires panel:
 	else
 		..(amount)
 
-/obj/machinery/door/airlock/_examine_text(mob/user)
+/obj/machinery/door/airlock/examine(mob/user, infix)
 	. = ..()
+
 	if(lock_cut_state == BOLTS_EXPOSED)
-		. += "\nThe bolt cover has been cut open."
+		. += "The bolt cover has been cut open."
 	if(lock_cut_state == BOLTS_CUT)
-		. += "\nThe door bolts have been cut."
+		. += "The door bolts have been cut."
 	if(brace)
-		. += "\n\The [brace] is installed on \the [src], preventing it from opening."
-		. += "\n[brace.examine_health()]"
+		. += "\The [brace] is installed on \the [src], preventing it from opening."
+		. += "[brace.examine_health()]"
 
 /obj/machinery/door/airlock/CanAStarPass/CanAStarPass(to_dir, datum/can_pass_info/pass_info)
 	//Airlock is passable if it is open (!density), bot has access, and is not bolted shut or powered off)

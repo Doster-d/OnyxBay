@@ -251,26 +251,26 @@
 	else
 		return 0
 
-/obj/mecha/_examine_text(mob/user)
+/obj/mecha/examine(mob/user, infix)
 	. = ..()
+
 	var/integrity = health/initial(health)*100
 	switch(integrity)
 		if(85 to 100)
-			. += "\nIt's fully intact."
+			. += "It's fully intact."
 		if(65 to 85)
-			. += "\nIt's slightly damaged."
+			. += "It's slightly damaged."
 		if(45 to 65)
-			. += "\nIt's badly damaged."
+			. += "It's badly damaged."
 		if(25 to 45)
-			. += "\nIt's heavily damaged."
+			. += "It's heavily damaged."
 		else
-			. += "\nIt's falling apart."
-	if(equipment && equipment.len)
-		. += "\nIt's equipped with:"
-		for(var/obj/item/mecha_parts/mecha_equipment/ME in equipment)
-			. += "\n\icon[ME] [ME]"
-	return
+			. += "It's falling apart."
 
+	if(equipment && equipment.len)
+		. += "It's equipped with:"
+		for(var/obj/item/mecha_parts/mecha_equipment/ME in equipment)
+			. += "\icon[ME] [ME]"
 
 /obj/mecha/proc/drop_item()//Derpfix, but may be useful in future for engineering exosuits.
 	return
@@ -374,10 +374,12 @@
 ////////  Movement procs  ////////
 //////////////////////////////////
 
-/obj/mecha/Move()
+/obj/mecha/Move(newloc, direct)
 	. = ..()
-	if(.)
-		events.fireEvent("onMove",get_turf(src))
+	if(!.)
+		return
+
+	events.fireEvent("onMove", get_turf(src))
 
 /obj/mecha/relaymove(mob/user,direction)
 	if(user != src.occupant) //While not "realistic", this piece is player friendly.
@@ -619,7 +621,7 @@
 			user.visible_message(SPAN("danger", "\The [user] hits \the [src]. Nothing happens."), SPAN("danger", "You hit \the [src] with no visible effect."))
 			log_append_to_last("Armor saved.")
 		return
-	else if((MUTATION_HULK in user.mutations) && !deflect_hit(is_melee = 1))
+	else if(((MUTATION_HULK in user.mutations) || (MUTATION_STRONG in user.mutations)) && !deflect_hit(is_melee = 1))
 		hit_damage(damage = 15, is_melee = 1)
 		check_for_internal_damage(list(MECHA_INT_TEMP_CONTROL, MECHA_INT_TANK_BREACH, MECHA_INT_CONTROL_LOST))
 		user.visible_message("<font color='red'><b>[user] hits [name], doing some damage.</b></font>", "<font color='red'><b>You hit [name] with all your might. The metal creaks and bends.</b></font>")
@@ -861,19 +863,23 @@
 
 	else if(isWelder(W) && user.a_intent != I_HURT)
 		var/obj/item/weldingtool/WT = W
-		if (WT.remove_fuel(0,user))
-			if (hasInternalDamage(MECHA_INT_TANK_BREACH))
-				clearInternalDamage(MECHA_INT_TANK_BREACH)
-				to_chat(user, "<span class='notice'>You repair the damaged gas tank.</span>")
-				user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-		else
+
+		if(!WT.use_tool(src, user, amount = 1))
 			return
-		if(src.health<initial(src.health))
-			to_chat(user, "<span class='notice'>You repair some damage to [src.name].</span>")
+
+		if(!hasInternalDamage(MECHA_INT_TANK_BREACH))
+			return
+
+		clearInternalDamage(MECHA_INT_TANK_BREACH)
+		to_chat(user, SPAN_NOTICE("You repair the damaged gas tank."))
+		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+
+		if(health < initial(health))
+			to_chat(user, SPAN_NOTICE("You repair some damage to [src.name]."))
 			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-			src.health += min(10, initial(src.health)-src.health)
+			src.health += min(10, initial(health) - health)
 		else
-			to_chat(user, "The [src.name] is at full integrity")
+			to_chat(user, "\The [name] is at full integrity")
 		return
 
 	else if(istype(W, /obj/item/mecha_parts/mecha_tracking))
@@ -1004,8 +1010,8 @@
 	if(possible_port)
 		if(connect(possible_port))
 			src.occupant_message("<span class='notice'>\The [name] connects to the port.</span>")
-			src.verbs += /obj/mecha/verb/disconnect_from_port
-			src.verbs -= /obj/mecha/verb/connect_to_port
+			add_verb(occupant, /obj/mecha/verb/disconnect_from_port)
+			remove_verb(occupant, /obj/mecha/verb/connect_to_port)
 			return
 		else
 			src.occupant_message("<span class='danger'>\The [name] failed to connect to the port.</span>")
@@ -1024,8 +1030,8 @@
 		return
 	if(disconnect())
 		src.occupant_message("<span class='notice'>[name] disconnects from the port.</span>")
-		src.verbs -= /obj/mecha/verb/disconnect_from_port
-		src.verbs += /obj/mecha/verb/connect_to_port
+		add_verb(occupant, /obj/mecha/verb/connect_to_port)
+		remove_verb(occupant, /obj/mecha/verb/disconnect_from_port)
 	else
 		src.occupant_message("<span class='danger'>[name] is not connected to the port at the moment.</span>")
 
@@ -1120,6 +1126,8 @@
 /obj/mecha/proc/moved_inside(mob/living/carbon/human/H)
 	. = FALSE
 	ASSERT(H.client)
+
+	_add_verb_to_stat(H, verbs)
 
 	H.reset_view(src)
 	H.stop_pulling()
@@ -1223,7 +1231,7 @@
 	brainmob.forceMove(src) // should allow relaymove
 	//brainmob.canmove = TRUE
 	//mmi_as_oc.mecha = src
-	verbs -= /obj/mecha/verb/eject
+	remove_verb(occupant, /obj/mecha/verb/eject)
 	Entered(I)
 	forceMove(loc)
 	icon_state = reset_icon()
@@ -1268,6 +1276,9 @@
 
 /obj/mecha/proc/go_out()
 	if(!src.occupant) return
+
+	_remove_verb_from_stat(occupant, verbs)
+
 	var/atom/movable/mob_container
 	var/list/onmob_items //prevents duplication of objects with which the human interacted in the mech
 	if(ishuman(occupant))
@@ -1300,12 +1311,12 @@
 			var/obj/item/organ/internal/cerebrum/mmi/mmi = mob_container
 			if(mmi.brainmob)
 				occupant.forceMove(mmi)
-			verbs += /obj/mecha/verb/eject
+			add_verb(occupant, /obj/mecha/verb/eject)
 		if(istype(mob_container, /obj/item/organ/internal/cerebrum/posibrain))
 			var/obj/item/organ/internal/cerebrum/posibrain/pb = mob_container
 			if(pb.brainmob)
 				occupant.forceMove(pb)
-			verbs += /obj/mecha/verb/eject
+			add_verb(occupant, /obj/mecha/verb/eject)
 
 		occupant = null
 		icon_state = reset_icon()+"-open"

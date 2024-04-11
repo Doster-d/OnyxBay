@@ -112,14 +112,17 @@
 			I.pixel_y = -3
 		AddOverlays(I)
 
-/obj/structure/bigDelivery/_examine_text(mob/user)
+/obj/structure/bigDelivery/examine(mob/user, infix)
 	. = ..()
-	if(get_dist(src, user) <= 4)
-		if(sortTag)
-			. += "\n<span class='notice'>It is labeled \"[sortTag]\"</span>"
-		if(examtext)
-			. += "\n<span class='notice'>It has a note attached which reads, \"[examtext]\"</span>"
-	return
+
+	if(get_dist(src, user) > 4)
+		return
+
+	if(sortTag)
+		. += SPAN_NOTICE("It is labeled \"[sortTag]\"")
+	if(examtext)
+		. += SPAN_NOTICE("It has a note attached which reads, \"[examtext]\"")
+
 
 /obj/structure/bigDelivery/Destroy()
 	if(wrapped) //sometimes items can disappear. For example, bombs. --rastaf0
@@ -256,14 +259,17 @@
 				I.pixel_y = 1
 		AddOverlays(I)
 
-/obj/item/smallDelivery/_examine_text(mob/user)
+/obj/item/smallDelivery/examine(mob/user, infix)
 	. = ..()
-	if(get_dist(src, user) <= 4)
-		if(sortTag)
-			. += "\n<span class='notice'>It is labeled \"[sortTag]\"</span>"
-		if(examtext)
-			. += "\n<span class='notice'>It has a note attached which reads, \"[examtext]\"</span>"
-	return
+
+	if(get_dist(src, user) > 4)
+		return
+
+	if(sortTag)
+		. += SPAN_NOTICE("It is labeled \"[sortTag]\".")
+	if(examtext)
+		. += SPAN_NOTICE("It has a note attached which reads, \"[examtext]\".")
+
 
 /obj/item/packageWrap
 	name = "package wrapper"
@@ -300,40 +306,59 @@
 
 	if (istype(target, /obj/item) && !(istype(target, /obj/item/storage) && !istype(target,/obj/item/storage/box)))
 		var/obj/item/O = target
-		if (src.amount > 1)
+		if(amount)
 			var/obj/item/smallDelivery/P = new /obj/item/smallDelivery(get_turf(O.loc))	//Aaannd wrap it up!
+
 			if(!istype(O.loc, /turf))
 				if(user.client)
 					user.client.screen -= O
+
 			P.wrapped = O
 			P.w_class = O.w_class
+
+			var/size_text = "ambiguous"
 			var/i = round(O.w_class)
-			if(i in list(1,2,3,4,5))
+			if(i in list(1, 2, 3, 4, 5))
 				P.icon_state = "deliverycrate[i]"
 				switch(i)
-					if(1) P.SetName("tiny parcel")
-					if(3) P.SetName("normal-sized parcel")
-					if(4) P.SetName("large parcel")
-					if(5) P.SetName("huge parcel")
+					if(1)
+						size_text = "tiny"
+					if(2)
+						size_text = "small"
+					if(3)
+						size_text = "normal-sized"
+					if(4)
+						size_text = "large"
+					if(5)
+						size_text = "huge"
 			if(i < 1)
 				P.icon_state = "deliverycrate1"
-				P.SetName("tiny parcel")
+				size_text = "tiny parcel"
 			if(i > 5)
 				P.icon_state = "deliverycrate5"
-				P.SetName("huge parcel")
+				size_text = "huge parcel"
+
+			P.SetName("[size_text] parcel")
+			P.desc = "A [size_text] wrapped package."
+
 			P.add_fingerprint(usr)
 			O.add_fingerprint(usr)
-			src.add_fingerprint(usr)
-			src.amount -= 1
+			add_fingerprint(usr)
+
+			amount -= 1
+
 			user.visible_message("\The [user] wraps \a [target] with \a [src].",\
 			SPAN("notice", "You wrap \the [target], leaving [amount] units of paper on \the [src]."),\
 			"You hear someone taping paper around a small object.")
+
 			if(istype(O, /obj/item/storage/box))
 				var/obj/item/storage/box/B = O
 				B.close(user)
 				P.SetName("box-shaped parcel")
 				P.icon_state = "deliverybox"
+
 			O.forceMove(P)
+
 	else if (istype(target, /obj/structure/closet/crate))
 		var/obj/structure/closet/crate/O = target
 		if (src.amount > 3 && !O.opened)
@@ -368,11 +393,11 @@
 		return
 	return
 
-/obj/item/packageWrap/_examine_text(mob/user)
+/obj/item/packageWrap/examine(mob/user, infix)
 	. = ..()
+
 	if(get_dist(src, user) <= 0)
-		. += "\n<span class='notice'>There are [amount] units of package wrap left!</span>"
-	return
+		. += SPAN_NOTICE("There are [amount] units of package wrap left!")
 
 /obj/item/device/destTagger
 	name = "destination tagger"
@@ -510,24 +535,23 @@
 			playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
 			to_chat(user, "You attach the screws around the power connection.")
 			return
-	else if(isWelder(I) && c_mode==1)
-		var/obj/item/weldingtool/W = I
-		if(W.remove_fuel(1,user))
-			to_chat(user, "You start slicing the floorweld off the delivery chute.")
-			if(do_after(user,20, src))
-				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
-				if(!src || !W.isOn()) return
-				to_chat(user, "You sliced the floorweld off the delivery chute.")
-				var/obj/structure/disposalconstruct/C = new (src.loc)
-				C.ptype = 8 // 8 =  Delivery chute
-				C.update()
-				C.anchored = 1
-				C.set_density(1)
-				qdel(src)
+	else if(isWelder(I) && c_mode == 1)
+		var/obj/item/weldingtool/WT = I
+		to_chat(user, "You start slicing the floorweld off the delivery chute.")
+		if(!WT.use_tool(src, user, delay = 2 SECONDS, amount = 1))
 			return
-		else
-			to_chat(user, "You need more welding fuel to complete this task.")
+
+		if(QDELETED(src) || !user)
 			return
+
+		to_chat(user, "You sliced the floorweld off the delivery chute.")
+		var/obj/structure/disposalconstruct/C = new (src.loc)
+		C.ptype = 8 // 8 =  Delivery chute
+		C.update()
+		C.anchored = TRUE
+		C.set_density(TRUE)
+		qdel(src)
+		return
 
 /obj/machinery/disposal/deliveryChute/Destroy()
 	if(trunk)

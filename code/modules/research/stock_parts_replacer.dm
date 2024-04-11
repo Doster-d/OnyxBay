@@ -39,26 +39,28 @@
 	wasted = !length(contents)
 	icon_state = "RMUK-[wasted ? "wasted" : "used"]"
 
-/obj/item/storage/part_replacer/mini/_examine_text(mob/user)
+/obj/item/storage/part_replacer/mini/examine(mob/user, infix)
 	. = ..()
+
 	if(active)
-		. += "\nIt contains the following parts:"
+		. += "It contains the following parts:"
 		for(var/atom/A in contents)
-			. += SPAN("notice", "\n	[A.name]")
+			. += SPAN("notice", "	[A.name]")
 	else
-		. += "\nThis one's already been used."
+		. += "This one's already been used."
 		if(!wasted)
-			. += "\nIt seems to still contain some spare parts that can be salvaged."
+			. += "It seems to still contain some spare parts that can be salvaged."
 
 /obj/item/storage/part_replacer/mini/attackby(obj/item/I, mob/user)
 	if(isWelder(I))
 		var/obj/item/weldingtool/WT = I
-		if(WT.remove_fuel(0, user))
-			salvage()
-			new /obj/item/stack/material/steel(get_turf(src))
-			playsound(loc, 'sound/items/Welder.ogg', 100, 1)
-			qdel(src)
-			return
+		if(!WT.use_tool(src, user, amount = 1))
+			return FALSE
+
+		salvage()
+		new /obj/item/stack/material/steel(get_turf(src))
+		qdel(src)
+		return
 
 	if(isCrowbar(I))
 		if(wasted)

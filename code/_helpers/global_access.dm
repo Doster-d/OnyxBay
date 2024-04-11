@@ -83,8 +83,6 @@
 			return global.SStgui;
 		if("SSticker")
 			return global.SSticker;
-		if("SStimer")
-			return global.SStimer;
 		if("SStrade")
 			return global.SStrade;
 		if("SSvines")
@@ -243,8 +241,6 @@
 			return global.chemical_reactions_list;
 		if("church_name")
 			return global.church_name;
-		if("client_preference_stats_")
-			return global.client_preference_stats_;
 		if("client_repository")
 			return global.client_repository;
 		if("combatlog")
@@ -892,8 +888,6 @@
 			global.SStgui=newval;
 		if("SSticker")
 			global.SSticker=newval;
-		if("SStimer")
-			global.SStimer=newval;
 		if("SStrade")
 			global.SStrade=newval;
 		if("SSvines")
@@ -1056,8 +1050,6 @@
 			global.chemical_reactions_list=newval;
 		if("church_name")
 			global.church_name=newval;
-		if("client_preference_stats_")
-			global.client_preference_stats_=newval;
 		if("client_repository")
 			global.client_repository=newval;
 		if("combatlog")
@@ -1759,7 +1751,6 @@
 	"chemical_reactions_list",
 	"chicken_count",
 	"church_name",
-	"client_preference_stats_",
 	"client_repository",
 	"combatlog",
 	"comm_message_listeners",

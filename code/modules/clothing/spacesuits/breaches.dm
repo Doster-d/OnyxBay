@@ -203,18 +203,16 @@
 		return
 
 	else if(isWelder(W))
-
 		if(istype(src.loc,/mob/living))
 			to_chat(user, "<span class='warning'>How do you intend to patch a powersuit while someone is wearing it?</span>")
 			return
 
-		if (brute_damage <= 0)
+		if(brute_damage <= 0)
 			to_chat(user, "There is no structural damage on \the [src] to repair.")
 			return
 
 		var/obj/item/weldingtool/WT = W
-		if(!WT.remove_fuel(5))
-			to_chat(user, "<span class='warning'>You need more welding fuel to repair this suit.</span>")
+		if(!WT.use_tool(src, user, amount = 5))
 			return
 
 		repair_breaches(BRUTE, 3, user)
@@ -239,8 +237,9 @@
 
 	..()
 
-/obj/item/clothing/suit/space/_examine_text(mob/user)
+/obj/item/clothing/suit/space/examine(mob/user, infix)
 	. = ..()
+
 	if(can_breach && breaches && breaches.len)
 		for(var/datum/breach/B in breaches)
-			. += "\n<span class='danger'>It has \a [B.descriptor].</span>"
+			. += SPAN_DANGER("It has \a [B.descriptor].")

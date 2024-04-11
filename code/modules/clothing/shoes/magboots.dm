@@ -27,6 +27,11 @@
 	drop_sound = SFX_DROP_BOOTS
 	pickup_sound = SFX_PICKUP_BOOTS
 
+	item_state_slots = list(
+		slot_l_hand_str = "magboots",
+		slot_r_hand_str = "magboots",
+		)
+
 /obj/item/clothing/shoes/magboots/proc/set_slowdown()
 	slowdown_per_slot[slot_shoes] = shoes? max(0, shoes.slowdown_per_slot[slot_shoes]): 0	//So you can't put on magboots to make you walk faster.
 	if (magpulse)
@@ -95,9 +100,11 @@
 	wearer.update_floating()
 	wearer = null
 
-/obj/item/clothing/shoes/magboots/_examine_text(mob/user)
+/obj/item/clothing/shoes/magboots/examine(mob/user, infix)
 	. = ..()
+
 	var/state = "disabled"
 	if(item_flags & ITEM_FLAG_NOSLIP)
 		state = "enabled"
-	. += "\nIts [traction_system] traction system appears to be [state]."
+
+	. += "Its [traction_system] traction system appears to be [state]."

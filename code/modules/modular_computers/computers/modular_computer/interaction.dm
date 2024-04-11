@@ -1,12 +1,12 @@
 /obj/item/modular_computer/proc/update_verbs()
-	verbs.Cut()
+	remove_verb(loc, verbs)
 	if(ai_slot)
-		verbs |= /obj/item/modular_computer/verb/eject_ai
+		add_verb(loc, /obj/item/modular_computer/verb/eject_ai)
 	if(portable_drive)
-		verbs |= /obj/item/modular_computer/verb/eject_usb
+		add_verb(loc, /obj/item/modular_computer/verb/eject_usb)
 	if(card_slot)
-		verbs |= /obj/item/modular_computer/verb/eject_id
-	verbs |= /obj/item/modular_computer/verb/emergency_shutdown
+		add_verb(loc, /obj/item/modular_computer/verb/eject_id)
+	add_verb(loc, /obj/item/modular_computer/verb/emergency_shutdown)
 
 // Forcibly shut down the device. To be used when something bugs out and the UI is nonfunctional.
 /obj/item/modular_computer/verb/emergency_shutdown()
@@ -196,18 +196,15 @@
 		return
 	if(isWelder(W))
 		var/obj/item/weldingtool/WT = W
-		if(!WT.isOn())
-			to_chat(user, "\The [W] is off.")
-			return
-
 		if(!damage)
 			to_chat(user, "\The [src] does not require repairs.")
 			return
 
-		to_chat(user, "You begin repairing damage to \the [src]...")
-		if(WT.remove_fuel(round(damage/75)) && do_after(usr, damage/10))
-			damage = 0
-			to_chat(user, "You repair \the [src].")
+		if(!WT.use_tool(src, user, delay = round(damage /10), amount = round(damage/75)))
+			return
+
+		damage = 0
+		to_chat(user, "You repair \the [src].")
 		return
 
 	if(isScrewdriver(W))

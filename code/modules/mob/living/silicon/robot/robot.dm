@@ -493,49 +493,30 @@
 	else
 		set_light(0)
 
-// this function displays jetpack pressure in the stat panel
-/mob/living/silicon/robot/proc/show_jetpack_pressure()
-	// if you have a jetpack, show the internal tank pressure
-	var/obj/item/tank/jetpack/current_jetpack = installed_jetpack()
-	if (current_jetpack)
-		stat("Internal Atmosphere Info", current_jetpack.name)
-		stat("Tank Pressure", current_jetpack.air_contents.return_pressure())
-
-
 // this function returns the robots jetpack, if one is installed
 /mob/living/silicon/robot/proc/installed_jetpack()
 	if(module)
 		return (locate(/obj/item/tank/jetpack) in module.modules)
-	return 0
+	return null
 
-
-// this function displays the cyborgs current cell charge in the stat panel
-/mob/living/silicon/robot/proc/show_cell_power()
-	if(cell)
-		stat(null, text("Charge Left: [round(CELL_PERCENT(cell))]%"))
-		stat(null, text("Cell Rating: [round(cell.maxcharge)]")) // Round just in case we somehow get crazy values
-		stat(null, text("Power Cell Load: [round(used_power_this_tick)]W"))
-	else
-		stat(null, text("No Cell Inserted!"))
-
-/mob/living/silicon/robot/proc/show_gps()
-	var/turf/T = get_turf(src)
-	if (T.z != 1 && T.z != 2)
-		stat(null, text("Current location: Unknown"))
-	else
-		stat(null, text("Current location:[T.x]:[T.y]:[T.z]"))
-
-// update the status screen display
-/mob/living/silicon/robot/Stat()
+/mob/living/silicon/robot/get_status_tab_items()
 	. = ..()
-	if (statpanel("Status"))
-		show_gps()
-		show_cell_power()
-		show_jetpack_pressure()
-		stat(null, text("Lights: [lights_on ? "ON" : "OFF"]"))
-		if(module)
-			for(var/datum/matter_synth/ms in module.synths)
-				stat("[ms.name]: [ms.energy]/[ms.max_energy_multiplied]")
+
+	. += list(
+		"Cell Charge: [isnull(cell) ? "NO CELL" : "[round(cell.charge)]/[round(cell.maxcharge)]W"]",
+		"Cell Load: [round(used_power_this_tick)]W",
+		"",
+	)
+
+	var/obj/item/tank/jetpack/current_jetpack = installed_jetpack()
+	if(!isnull(current_jetpack))
+		. += list(
+			"[current_jetpack]: [current_jetpack.air_contents.return_pressure()]kPa",
+			"",
+		)
+
+	for(var/datum/matter_synth/ms in module?.synths)
+		. += "[ms.name]: [ms.energy]/[ms.max_energy_multiplied]"
 
 /mob/living/silicon/robot/restrained()
 	return 0
@@ -578,19 +559,18 @@
 			to_chat(user, "Nothing to fix here!")
 			return
 		var/obj/item/weldingtool/WT = W
-		if (src == user && !do_after(user, 30, src))
-			to_chat(user, "<span class='warning'>You must stand still to repair yourself!</span>")
+		if(!WT.use_tool(src, user, delay = 3 SECONDS, amount = 5))
 			return
-		if (WT.remove_fuel(0))
-			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-			adjustBruteLoss(-30)
-			updatehealth()
-			add_fingerprint(user)
-			for(var/mob/O in viewers(user, null))
-				O.show_message(text("<span class='warning'>[user] has fixed some of the dents on [src]!</span>"), 1)
-		else
-			to_chat(user, "Need more welding fuel!")
+
+		if(QDELETED(src) || !user)
 			return
+
+		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+		adjustBruteLoss(-30)
+		updatehealth()
+		add_fingerprint(user)
+		for(var/mob/O in viewers(user, null))
+			O.show_message(text("<span class='warning'>[user] has fixed some of the dents on [src]!</span>"), 1)
 
 	else if(isCoil(W) && (wiresexposed || istype(src,/mob/living/silicon/robot/drone)))
 		if (!getFireLoss())
@@ -975,57 +955,48 @@
 	return I
 
 
-/mob/living/silicon/robot/Move(a, b, flag)
-
+/mob/living/silicon/robot/Move(newloc, direct)
 	. = ..()
+	if(!.)
+		return
 
-	if(module)
-		if(module.type == /obj/item/robot_module/janitor/general)
-			var/turf/tile = loc
-			if(isturf(tile))
-				tile.clean_blood()
-				if (istype(tile, /turf/simulated))
-					var/turf/simulated/S = tile
-					S.dirt = 0
-				for(var/A in tile)
-					if(istype(A, /obj/effect))
-						if(istype(A, /obj/effect/rune) || istype(A, /obj/effect/decal/cleanable) || istype(A, /obj/effect/overlay))
-							qdel(A)
-					else if(istype(A, /obj/item))
-						var/obj/item/cleaned_item = A
-						cleaned_item.clean_blood()
-					else if(istype(A, /mob/living/carbon/human))
-						var/mob/living/carbon/human/cleaned_human = A
-						if(cleaned_human.lying)
-							if(cleaned_human.head)
-								cleaned_human.head.clean_blood()
-								cleaned_human.update_inv_head(0)
-							if(cleaned_human.wear_suit)
-								cleaned_human.wear_suit.clean_blood()
-								cleaned_human.update_inv_wear_suit(0)
-							else if(cleaned_human.w_uniform)
-								cleaned_human.w_uniform.clean_blood()
-								cleaned_human.update_inv_w_uniform(0)
-							if(cleaned_human.shoes)
-								cleaned_human.shoes.clean_blood()
-								cleaned_human.update_inv_shoes(0)
-							cleaned_human.clean_blood(1)
-							to_chat(cleaned_human, "<span class='warning'>[src] cleans your face!</span>")
-/*		if(module.type == /obj/item/robot_module/engineering)
-			var/obj/item/robot_module/engineering/general/mod = src.module
-			var/turf/tile = loc
-			world<< mod.synths
-			locate() in
-			if(isturf(tile))
-				for(var/I in tile)
-					if (istype(I,/obj/item/stack/material/steel))
-						mod.synths.metal.add_charge(1000)
-						spawn(0) //give the stacks a chance to delete themselves if necessary
-					else if (istype(I,/obj/item/stack/material/cyborg/glass/reinforced))
-						var/datum/matter_synth/metal.add_charge(500)
-						var/datum/matter_synth/glass.add_charge(1000)
-						spawn(0) //give the stacks a chance to delete themselves if necessary
-*/
+	if(!module || module.type != /obj/item/robot_module/janitor/general)
+		return
+
+	var/turf/tile = loc
+	if(!isturf(tile))
+		return
+
+	tile.clean_blood()
+
+	if(istype(tile, /turf/simulated))
+		var/turf/simulated/S = tile
+		S.dirt = 0
+
+	for(var/A in tile)
+		if(istype(A, /obj/effect))
+			if(istype(A, /obj/effect/rune) || istype(A, /obj/effect/decal/cleanable) || istype(A, /obj/effect/overlay))
+				qdel(A)
+		else if(istype(A, /obj/item))
+			var/obj/item/cleaned_item = A
+			cleaned_item.clean_blood()
+		else if(istype(A, /mob/living/carbon/human))
+			var/mob/living/carbon/human/cleaned_human = A
+			if(cleaned_human.lying)
+				if(cleaned_human.head)
+					cleaned_human.head.clean_blood()
+					cleaned_human.update_inv_head(0)
+				if(cleaned_human.wear_suit)
+					cleaned_human.wear_suit.clean_blood()
+					cleaned_human.update_inv_wear_suit(0)
+				else if(cleaned_human.w_uniform)
+					cleaned_human.w_uniform.clean_blood()
+					cleaned_human.update_inv_w_uniform(0)
+				if(cleaned_human.shoes)
+					cleaned_human.shoes.clean_blood()
+					cleaned_human.update_inv_shoes(0)
+				cleaned_human.clean_blood(1)
+				to_chat(cleaned_human, SPAN("warning", "<b>[src]</b> cleans your face!"))
 
 /mob/living/silicon/robot/proc/self_destruct()
 	gib()
@@ -1140,10 +1111,10 @@
 	toggle_sensor_mode()
 
 /mob/living/silicon/robot/proc/add_robot_verbs()
-	src.verbs |= robot_verbs_default
+	grant_verb(src, robot_verbs_default)
 
 /mob/living/silicon/robot/proc/remove_robot_verbs()
-	src.verbs -= robot_verbs_default
+	revoke_verb(src, robot_verbs_default)
 
 // Uses power from cyborg's cell. Returns 1 on success or 0 on failure.
 // Properly converts using CELLRATE now! Amount is in Joules.

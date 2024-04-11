@@ -52,6 +52,11 @@ var/list/organ_cache = list()
 		owner = null
 	dna = null
 	QDEL_NULL(food_organ)
+
+	if(ismob(loc))
+		var/mob/M = loc
+		M.drop(src, force = TRUE, changing_slots = TRUE) // Changing_slots prevents drop_sound from playing
+
 	return ..()
 
 /obj/item/organ/proc/update_health()
@@ -171,11 +176,14 @@ var/list/organ_cache = list()
 	else
 		return (istype(loc,/obj/item/organ/internal/cerebrum/mmi) || istype(loc,/obj/structure/closet/body_bag/cryobag) || istype(loc,/obj/structure/closet/crate/freezer) || istype(loc,/obj/item/storage/box/freezer) || istype(loc,/mob/living/simple_animal/hostile/little_changeling))
 
-/obj/item/organ/_examine_text(mob/user)
+/obj/item/organ/examine(mob/user, infix)
 	. = ..()
-	. += "\n[show_decay_status(user)]"
+
+	. += show_decay_status(user)
+
 	if(get_dist(src, user) > 1)
 		return
+
 	. += food_organ.get_bitecount()
 
 /obj/item/organ/proc/show_decay_status(mob/user)

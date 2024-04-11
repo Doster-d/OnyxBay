@@ -41,6 +41,9 @@
 
 	var/turf_height = 0 // "Vertical" offset. Mostly used for mobs and dropped items.
 
+	/// Whether this turf can be used inside a blank holodeck i.e reinforced tile.
+	var/holodeck_compatible = FALSE
+
 	/// If this turf contained an RCD'able object (or IS one, for walls)
 	/// but is now destroyed, this will preserve the value.
 	/// See __DEFINES/construction.dm for RCD_MEMORY_*.
@@ -304,16 +307,14 @@ var/const/enterloopsanity = 100
 /turf/allow_drop()
 	return TRUE
 
-/turf/_examine_text(mob/user, infix, suffix)
+/turf/examine(mob/user, infix)
 	. = ..()
 
 	if(hasHUD(user, HUD_SCIENCE))
-		. += "\nStopping Power:"
+		. += "Stopping Power:"
 
-		. += "\nα-particle: [fmt_siunit(CONV_JOULE_ELECTRONVOLT(rad_resist[RADIATION_ALPHA_PARTICLE]), "eV", 3)]"
-		. += "\nβ-particle: [fmt_siunit(CONV_JOULE_ELECTRONVOLT(rad_resist[RADIATION_BETA_PARTICLE]), "eV", 3)]"
-
-	return .
+		. += "α-particle: [fmt_siunit(CONV_JOULE_ELECTRONVOLT(rad_resist[RADIATION_ALPHA_PARTICLE]), "eV", 3)]"
+		. += "β-particle: [fmt_siunit(CONV_JOULE_ELECTRONVOLT(rad_resist[RADIATION_BETA_PARTICLE]), "eV", 3)]"
 
 /turf/proc/get_footstep_sound()
 	if(footstep_sound)

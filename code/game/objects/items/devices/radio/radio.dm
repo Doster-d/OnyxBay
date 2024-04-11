@@ -248,7 +248,7 @@
 	//  Fix for permacell radios, but kinda eh about actually fixing them.
 	if(!M || !message) return 0
 
-	if(speaking && (speaking.flags & (NONVERBAL|SIGNLANG))) return 0
+	if(speaking && (speaking.language_flags & (NONVERBAL|SIGNLANG))) return 0
 
 	var/mob/living/carbon/C = M
 	if((istype(C)) && (C.chem_effects[CE_SEDATE]))
@@ -495,14 +495,14 @@
 		return get_mobs_or_objects_in_view(canhear_range, src)
 
 
-/obj/item/device/radio/_examine_text(mob/user)
+/obj/item/device/radio/examine(mob/user, infix)
 	. = ..()
-	if ((in_range(src, user) || loc == user))
-		if (b_stat)
-			. += "\n[SPAN_NOTICE("\The [src] can be attached and modified!</span>")]"
+
+	if((in_range(src, user) || loc == user))
+		if(b_stat)
+			. += "[SPAN_NOTICE("\The [src] can be attached and modified!")]"
 		else
-			. += "\n[SPAN_NOTICE("\The [src] can not be modified or attached!</span>")]"
-	return
+			. += "[SPAN_NOTICE("\The [src] can not be modified or attached!")]"
 
 /obj/item/device/radio/attackby(obj/item/W as obj, mob/user as mob)
 	..()

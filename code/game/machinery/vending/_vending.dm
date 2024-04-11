@@ -116,16 +116,16 @@
 		cartridge.extra = products
 		cartridge.build_inventory(gen_rand_amount)
 
-/obj/machinery/vending/_examine_text(mob/user)
+/obj/machinery/vending/examine(mob/user, infix)
 	. = ..()
-	if(.)
-		if(stat & BROKEN)
-			to_chat(user, SPAN("warning", "It's broken."))
-		else
-			if(health <= 0.4 * max_health)
-				to_chat(user, SPAN("warning", "It's heavily damaged!"))
-			else if(health < max_health)
-				to_chat(user, SPAN("warning", "It's showing signs of damage."))
+
+	if(stat & BROKEN)
+		. += SPAN("warning", "It's broken.")
+	else
+		if(health <= 0.4 * max_health)
+			. += SPAN("warning", "It's heavily damaged!")
+		else if(health < max_health)
+			. += SPAN("warning", "It's showing signs of damage.")
 
 /obj/machinery/vending/proc/take_damage(force)
 	if(health > 0)
@@ -263,21 +263,24 @@
 	qdel(src)
 	return FALSE
 
-/obj/machinery/vending/proc/attempt_to_repair(mob/user, obj/item/weldingtool/W)
-	if(!istype(W) || !W.isOn())
+/obj/machinery/vending/proc/attempt_to_repair(mob/user, obj/item/weldingtool/WT)
+	if(!istype(WT))
 		return FALSE
+
 	if(health == max_health)
 		to_chat(user, SPAN("notice", "\The [src] is undamaged."))
 		return FALSE
-	if(!W.remove_fuel(0, user))
-		to_chat(user, SPAN("notice", "You need more welding fuel to complete this task."))
-		return FALSE
-	playsound(src, 'sound/items/Welder.ogg', 100, 1)
+
 	user.visible_message(SPAN("notice", "[user] is repairing \the [src]..."), SPAN("notice", "You start repairing the damage to [src]..."))
-	if(do_after(user, 30, src) && W.isOn())
-		health = max_health
-		user.visible_message(SPAN("notice", "[user] repairs \the [src]."), SPAN("notice", "You repair \the [src]."))
-		set_broken(0)
+	if(!WT.use_tool(src, user, delay = 3 SECONDS, amount = 5))
+		return
+
+	if(QDELETED(src) || !user)
+		return
+
+	health = max_health
+	user.visible_message(SPAN("notice", "[user] repairs \the [src]."), SPAN("notice", "You repair \the [src]."))
+	set_broken(0)
 	return TRUE
 
 /obj/machinery/vending/MouseDrop_T(obj/item/I, mob/user)

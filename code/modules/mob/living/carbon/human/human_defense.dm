@@ -223,7 +223,7 @@ meteor_act
 	for(var/obj/item/clothing/gear in protective_gear)
 		if(gear.body_parts_covered & def_zone.body_part)
 			protection = add_armor(protection, gear.armor[type])
-		if(gear.accessories.len)
+		if(LAZYLEN(gear.accessories))
 			for(var/obj/item/clothing/accessory/bling in gear.accessories)
 				if(bling.body_parts_covered & def_zone.body_part)
 					protection = add_armor(protection, bling.armor[type])
@@ -245,7 +245,7 @@ meteor_act
 	// Unlike in get_flat_armor, here we iterate over everything since a piece
 	// of clothing may have a bodypart coverage w/out having it in 'body_parts_covered'
 	for(var/obj/item/clothing/C in protective_gear)
-		if(length(C.accessories))
+		if(LAZYLEN(C.accessories))
 			for(var/obj/item/clothing/accessory/CA in C.accessories)
 				armor_layer = CA.get_armor_coverage(affecting, type, src)
 				if(islist(armor_layer))
@@ -414,6 +414,9 @@ meteor_act
 	if(MUTATION_HULK in user.mutations)
 		effective_force *= 2
 
+	if(MUTATION_STRONG in user.mutations)
+		effective_force *= 2
+
 	if(lying)
 		effective_force *= 1.5 // Well it's easier to beat a lying dude to death right?
 
@@ -502,8 +505,13 @@ meteor_act
 
 	if(MUTATION_HULK in user.mutations)
 		effective_force *= 2
+
+	if(MUTATION_STRONG in user.mutations)
+		effective_force *= 2
+
 	if(src.lying)
 		effective_force *= 1.5 // Well it's easier to beat all the shit outta lying dudes right?
+
 	if(istype(user,/mob/living/carbon/human))
 		var/mob/living/carbon/human/A = user
 		if(A.body_build.name == "Slim" || A.body_build.name == "Slim Alt")

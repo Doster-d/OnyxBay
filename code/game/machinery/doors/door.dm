@@ -37,12 +37,18 @@
 	var/tryingToLock = FALSE // for autoclosing
 	// turf animation
 	var/atom/movable/fake_overlay/c_animation = null
+	/// Determines whether this door already has thinkg_close context running or not
+	var/thinking_about_closing = FALSE
 
 	rad_resist = list(
 		RADIATION_ALPHA_PARTICLE = 350 MEGA ELECTRONVOLT,
 		RADIATION_BETA_PARTICLE = 0.5 MEGA ELECTRONVOLT,
 		RADIATION_HAWKING = 81 MILLI ELECTRONVOLT
 	)
+
+/obj/machinery/door/Initialize()
+	. = ..()
+	add_think_ctx("close_context", CALLBACK(src, nameof(.proc/close)), 0)
 
 /obj/machinery/door/attack_generic(mob/user, damage)
 	if(damage >= 10)
@@ -244,16 +250,20 @@
 			to_chat(user, "<span class='warning'>\The [src] must be closed before you can repair it.</span>")
 			return
 
-		var/obj/item/weldingtool/welder = I
-		if(welder.remove_fuel(0,user))
-			to_chat(user, "<span class='notice'>You start to fix dents and weld \the [repairing] into place.</span>")
-			playsound(src, 'sound/items/Welder.ogg', 100, 1)
-			if(do_after(user, 5 * repairing.amount, src) && welder && welder.isOn())
-				to_chat(user, "<span class='notice'>You finish repairing the damage to \the [src].</span>")
-				health = between(health, health + repairing.amount*DOOR_REPAIR_AMOUNT, maxhealth)
-				update_icon()
-				qdel(repairing)
-				repairing = null
+		var/obj/item/weldingtool/WT = I
+
+		to_chat(user, SPAN_NOTICE("You start to fix dents and weld \the [repairing] into place."))
+		if(!WT.use_tool(src, user, delay = 5 * repairing.amount, amount = 5))
+			return
+
+		if(QDELETED(src) || !user)
+			return
+
+		to_chat(user, SPAN_NOTICE("You finish repairing the damage to \the [src]."))
+		health = between(health, health + repairing.amount*DOOR_REPAIR_AMOUNT, maxhealth)
+		update_icon()
+		qdel(repairing)
+		repairing = null
 		return
 
 	if(repairing && isCrowbar(I))
@@ -319,14 +329,15 @@
 	return
 
 
-/obj/machinery/door/_examine_text(mob/user)
+/obj/machinery/door/examine(mob/user, infix)
 	. = ..()
-	if(src.health < src.maxhealth / 4)
-		. += "\n\The [src] looks like it's about to break!"
+
+	if(health < maxhealth / 4)
+		. += "\The [src] looks like it's about to break!"
 	else if(src.health < src.maxhealth / 2)
-		. += "\n\The [src] looks seriously damaged!"
+		. += "\The [src] looks seriously damaged!"
 	else if(src.health < src.maxhealth * 3/4)
-		. += "\n\The [src] shows signs of damage!"
+		. += "\The [src] shows signs of damage!"
 
 
 /obj/machinery/door/set_broken(new_state)
@@ -407,8 +418,9 @@
 		filler.set_opacity(opacity)
 	operating = FALSE
 
-	if(autoclose)
-		addtimer(CALLBACK(src, nameof(.proc/close)), wait, TIMER_UNIQUE|TIMER_OVERRIDE)
+	if(autoclose && !thinking_about_closing)
+		thinking_about_closing = TRUE
+		set_next_think_ctx("close_context", world.time + wait)
 
 	return TRUE
 
@@ -417,8 +429,10 @@
 	if(!can_close(forced))
 		if(autoclose)
 			tryingToLock = TRUE
-			addtimer(CALLBACK(src, nameof(.proc/close)), wait, TIMER_UNIQUE|TIMER_OVERRIDE)
+			set_next_think_ctx("close_context", world.time + wait)
 		return FALSE
+
+	thinking_about_closing = FALSE
 	operating = TRUE
 
 	do_animate("closing")

@@ -123,7 +123,7 @@
 			admin_attack_log(user, M, "Fed the victim with [name] (Reagents: [contained])", "Was fed [src] (Reagents: [contained])", "used [src] (Reagents: [contained]) to feed")
 			user.visible_message(SPAN("danger", "[user] feeds [M] [src]."))
 
-		if(reagents)								//Handle ingestion of the reagent.
+		if(reagents && !(atom_flags & ATOM_FLAG_HOLOGRAM))								//Handle ingestion of the reagent.
 			playsound(M.loc, SFX_EAT, rand(45, 60), FALSE)
 			if(reagents.total_volume)
 				if(reagents.total_volume > bitesize)
@@ -150,12 +150,13 @@
 			return SPAN("notice", "\n\The [src] was bitten multiple times!")
 
 
-/obj/item/reagent_containers/food/_examine_text(mob/user)
+/obj/item/reagent_containers/food/examine(mob/user, infix)
 	. = ..()
+
 	if(get_dist(src, user) > 1)
 		return
-	. += get_bitecount()
 
+	. += get_bitecount()
 
 /obj/item/reagent_containers/food/throw_impact(atom/hit_atom, speed, thrown_with, target_zone)
 	var/mob/living/carbon/human/H = hit_atom

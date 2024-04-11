@@ -45,9 +45,6 @@
 	var/datum/eams_info/eams_info = new
 	var/list/topiclimiter
 
-	// comment out the line below when debugging locally to enable the options & messages menu
-	// control_freak = 1
-
 	// * Database related things *
 
 	// So admins know why it isn't working - Used to determine how old the account is - in days.
@@ -65,11 +62,27 @@
 	// For tracking shift key (world.time)
 	var/shift_released_at = 0
 
+	/// Currently viewed stat tab.
+	var/stat_tab
+
+	/// List of all stat panel tabs.
+	var/list/panel_tabs = list()
+	/// List of stat panel tabs containing spells and abilities.
+	var/list/spell_tabs = list()
+
+	/// Stat panel window.
+	var/datum/tgui_window/stat_panel
+	/// Stores info about and handles behavior for the object tab.
+	var/datum/object_window_info/obj_window
+
 	/// Settings window.
 	var/datum/player_settings/settings = null
 
 	/// Messages currently seen by this client
 	var/list/seen_messages
+
+	/// List of atom refs that were recently examined via `run_examinare` proc.
+	var/list/recent_examines
 
 	/// Whether typing indicators are enabled
 	var/typing_indicators

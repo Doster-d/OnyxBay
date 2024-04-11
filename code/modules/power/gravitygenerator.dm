@@ -124,10 +124,12 @@ GLOBAL_VAR(station_gravity_generator)
 	connected_areas = null
 	return ..()
 
-/obj/machinery/gravity_generator/main/_examine_text(mob/user)
+/obj/machinery/gravity_generator/main/examine(mob/user, infix)
 	. = ..()
+
 	if(panel_open)
-		. += "\nThe maintenance hatch is open."
+		. += "The maintenance hatch is open."
+
 	. += "[show_broken_info()]"
 
 /obj/machinery/gravity_generator/main/show_broken_info()
@@ -249,8 +251,12 @@ GLOBAL_VAR(station_gravity_generator)
 
 				playsound(loc, 'sound/items/Welder2.ogg', 50, 1)
 				var/obj/item/weldingtool/WT = I
-				if(!do_after(user, 15 SECONDS, middle) || !WT.remove_fuel(1, user) || broken_state != GRAV_NEEDS_WELDING)
+				if(!WT.use_tool(src, user, delay = 15 SECONDS, amount = 5))
 					return
+
+				if(QDELETED(src) || !user || broken_state != GRAV_NEEDS_WELDING)
+					return
+
 				health += 250
 				user.visible_message(SPAN_NOTICE("[user] fixed the damaged parts."),
 									SPAN_NOTICE("You fixed the damaged parts."))
@@ -562,7 +568,7 @@ GLOBAL_VAR(station_gravity_generator)
 		QDEL_NULL(main_part)
 	return ..()
 
-/obj/machinery/gravity_generator/part/_examine_text(mob/user)
+/obj/machinery/gravity_generator/part/examine(mob/user, infix)
 	. = ..()
 	. += "[main_part.show_broken_info()]"
 

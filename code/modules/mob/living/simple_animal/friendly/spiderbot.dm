@@ -45,8 +45,11 @@
 	..()
 	add_language(LANGUAGE_GALCOM)
 	default_language = all_languages[LANGUAGE_GALCOM]
-	verbs |= /mob/living/proc/ventcrawl
-	verbs |= /mob/living/proc/hide
+
+	grant_verb(src, list(
+		/mob/living/proc/ventcrawl,
+		/mob/living/proc/hide,
+	))
 
 /mob/living/simple_animal/spiderbot/attackby(obj/item/O as obj, mob/user as mob)
 
@@ -98,18 +101,17 @@
 
 	if(isWelder(O))
 		var/obj/item/weldingtool/WT = O
-		if (WT.remove_fuel(0))
-			if(health < maxHealth)
-				health += pick(1,1,1,2,2,3)
-				if(health > maxHealth)
-					health = maxHealth
-				add_fingerprint(user)
-				src.visible_message("<span class='notice'>\The [user] has spot-welded some of the damage to \the [src]!</span>")
-			else
-				to_chat(user, "<span class='warning'>\The [src] is undamaged!</span>")
-		else
-			to_chat(user, "<span class='danger'>You need more welding fuel for this task!</span>")
+		if(!WT.use_tool(src, user, amount = 1))
 			return
+
+		if(health < maxHealth)
+			health += pick(1,1,1,2,2,3)
+			if(health > maxHealth)
+				health = maxHealth
+			add_fingerprint(user)
+			src.visible_message("<span class='notice'>\The [user] has spot-welded some of the damage to \the [src]!</span>")
+		else
+			to_chat(user, "<span class='warning'>\The [src] is undamaged!</span>")
 	else if(istype(O, /obj/item/card/id)||istype(O, /obj/item/device/pda))
 		if (!mmi)
 			to_chat(user, "<span class='danger'>There's no reason to swipe your ID - \the [src] has no brain to remove.</span>")
@@ -278,9 +280,11 @@
 	to_chat(src, "<span class='warning'>There is nothing of interest to take.</span>")
 	return 0
 
-/mob/living/simple_animal/spiderbot/_examine_text(mob/user)
+/mob/living/simple_animal/spiderbot/examinate(atom/to_axamine)
 	. = ..()
+
 	if(src.held_item)
-		. += "\nIt is carrying \icon[src.held_item] \a [src.held_item]."
+		. += "It is carrying \icon[src.held_item] \a [src.held_item]."
+
 /mob/living/simple_animal/spiderbot/binarycheck()
 	return positronic

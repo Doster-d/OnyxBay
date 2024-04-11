@@ -171,9 +171,13 @@
 	if(!effective_force || blocked >= 100)
 		return 0
 
-	//Hulk modifier
+	// Hulk modifier
 	if(MUTATION_HULK in user.mutations)
 		effective_force *= 2
+
+	// STRONG modifier
+	if(MUTATION_STRONG in user.mutations)
+		effective_force *= 2 // Strong hulks are crazy ngl
 
 	//Apply weapon damage
 	var/damage_flags = I.damage_flags()
@@ -273,7 +277,7 @@
 /mob/living/proc/embed(obj/O, def_zone=null, datum/wound/supplied_wound)
 	O.forceMove(src)
 	src.embedded += O
-	src.verbs += /mob/proc/yank_out_object
+	grant_verb(src, /mob/proc/yank_out_object)
 
 //This is called when the mob is thrown into a dense turf
 /mob/living/proc/turf_collision(turf/T, speed)

@@ -14,9 +14,12 @@
 	cable.amount = 100
 	..()
 
-/obj/machinery/cablelayer/Move(new_turf,M_Dir)
+/obj/machinery/cablelayer/Move(newloc, direct)
 	. = ..()
-	layCable(new_turf,M_Dir)
+	if(!.)
+		return
+
+	layCable(newloc, direct)
 
 /obj/machinery/cablelayer/attack_hand(mob/user)
 	if(!cable&&!on)
@@ -49,9 +52,9 @@
 		else
 			to_chat(usr, "<span class='warning'>There's no more cable on the reel.</span>")
 
-/obj/machinery/cablelayer/_examine_text(mob/user)
+/obj/machinery/cablelayer/examine(mob/user, infix)
 	. = ..()
-	. += "\n\The [src]'s cable reel has [cable.amount] length\s left."
+	. += "\The [src]'s cable reel has [cable.amount] length\s left."
 
 /obj/machinery/cablelayer/proc/load_cable(obj/item/stack/cable_coil/CC)
 	if(istype(CC) && CC.amount)

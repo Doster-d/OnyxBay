@@ -299,14 +299,14 @@
 	A.AltClick(src)
 
 /atom/proc/AltClick(mob/user)
-	var/turf/T = get_turf(src)
-	if(T && user.TurfAdjacent(T))
-		if(user.listed_turf == T)
-			user.listed_turf = null
-		else
-			user.listed_turf = T
-			user.client.statpanel = "Turf"
-	return 1
+	var/cancel = SEND_SIGNAL(src, SIGNAL_ALT_CLICKED, src, user)
+	if(cancel)
+		return
+
+	var/turf/clicked_turf = get_turf(src)
+
+	if(clicked_turf && user.TurfAdjacent(clicked_turf))
+		user.set_listed_turf(clicked_turf)
 
 /mob/proc/TurfAdjacent(turf/T)
 	return T.AdjacentQuick(src)
@@ -335,9 +335,9 @@
 	return
 
 /atom/proc/CtrlAltClick(mob/user)
-	return
-
-
+	var/cancel = SEND_SIGNAL(src, SIGNAL_CTRL_ALT_CLICKED, src, user)
+	if(cancel)
+		return
 
 /*
 	Rclick.
@@ -500,11 +500,11 @@ var/const/CLICK_HANDLER_ALL                  = (~0)
 	..()
 	src.user = user
 	if(flags & (CLICK_HANDLER_REMOVE_ON_MOB_LOGOUT))
-		register_signal(user, SIGNAL_LOGGED_OUT, /datum/click_handler/proc/OnMobLogout)
+		register_signal(user, SIGNAL_LOGGED_OUT, nameof(/datum/click_handler.proc/OnMobLogout))
 
 /datum/click_handler/Destroy()
 	if(flags & (CLICK_HANDLER_REMOVE_ON_MOB_LOGOUT))
-		unregister_signal(user, SIGNAL_LOGGED_OUT, /datum/click_handler/proc/OnMobLogout)
+		unregister_signal(user, SIGNAL_LOGGED_OUT, nameof(/datum/click_handler.proc/OnMobLogout))
 	user = null
 	. = ..()
 

@@ -292,7 +292,7 @@
 				"<span class='notice'>\The [user] unfastens \the [src].</span>", \
 				"<span class='notice'>You have unfastened \the [src].</span>", \
 				"You hear a ratchet.")
-			var/obj/item/pipe/P = new(loc, make_from=src)
+			var/obj/item/pipe/P = new(loc, null, null, src)
 			if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
 				to_chat(user, "<span class='warning'>\the [src] flies off because of the overpressure in it!</span>")
 				P.throw_at_random(0, round((int_air.return_pressure()-env_air.return_pressure()) / 100), 30)
@@ -303,26 +303,16 @@
 
 		var/obj/item/weldingtool/WT = W
 
-		if(!WT.isOn())
-			to_chat(user, "<span class='notice'>The welding tool needs to be on to start this task.</span>")
-			return 1
-
-		if(!WT.remove_fuel(0,user))
-			to_chat(user, "<span class='warning'>You need more welding fuel to complete this task.</span>")
-			return 1
-
 		if(broken)
-			playsound(src.loc, 'sound/items/Welder2.ogg', 50, 1)
+			if(!WT.use_tool(src, user, delay = 2 SECONDS, amount = 5))
+				return
+
+			if(QDELETED(src) || !user)
+				return
+
 			user.visible_message(SPAN_NOTICE("\The [user] repairing \the [src]."), \
 				SPAN_NOTICE("Now repairing \the [src]."), \
 				"You hear welding.")
-
-			if(!do_after(user, 10, src))
-				to_chat(user, SPAN_NOTICE("You must remain still to finish this task!"))
-				return 1
-			if(!WT.isOn())
-				to_chat(user, SPAN_NOTICE("The welding tool needs to be on to finish this task."))
-				return 1
 
 			switch(broken)
 				if(VENT_DAMAGED_STAGE_ONE)
@@ -333,49 +323,45 @@
 					broken=VENT_DAMAGED_STAGE_TWO
 				if(VENT_BROKEN)
 					to_chat(user, SPAN_NOTICE("\The [src] is ruined! You can't repair it!"))
-					return 1
+					return
 
 			update_icon()
 			return
 
-		to_chat(user, "<span class='notice'>Now welding \the [src].</span>")
-		playsound(src.loc, 'sound/items/Welder2.ogg', 50, 1)
+		else
+			if(!WT.use_tool(src, user, delay = 2 SECONDS, amount = 5))
+				return
 
-		if(!do_after(user, 20, src))
-			to_chat(user, "<span class='notice'>You must remain close to finish this task.</span>")
-			return 1
+			if(QDELETED(src) || !user)
+				return
 
-		if(!src)
-			return 1
-
-		if(!WT.isOn())
-			to_chat(user, "<span class='notice'>The welding tool needs to be on to finish this task.</span>")
-			return 1
-
-		welded = !welded
-		update_icon()
-		user.visible_message("<span class='notice'>\The [user] [welded ? "welds \the [src] shut" : "unwelds \the [src]"].</span>", \
-			"<span class='notice'>You [welded ? "weld \the [src] shut" : "unweld \the [src]"].</span>", \
-			"You hear welding.")
-		return 1
+			welded = !welded
+			update_icon()
+			user.visible_message("<span class='notice'>\The [user] [welded ? "welds \the [src] shut" : "unwelds \the [src]"].</span>", \
+				"<span class='notice'>You [welded ? "weld \the [src] shut" : "unweld \the [src]"].</span>", \
+				"You hear welding.")
+			return
 
 	return ..()
 
-/obj/machinery/atmospherics/unary/vent_scrubber/_examine_text(mob/user)
+/obj/machinery/atmospherics/unary/vent_scrubber/examine(mob/user, infix)
 	. = ..()
+
 	if(get_dist(src, user) <= 1)
-		. += "\nA small gauge in the corner reads [round(last_flow_rate, 0.1)] L/s; [round(last_power_draw)] W"
+		. += "A small gauge in the corner reads [round(last_flow_rate, 0.1)] L/s; [round(last_power_draw)] W"
 	else
-		. += "\nYou are too far away to read the gauge."
+		. += "You are too far away to read the gauge."
+
 	if(welded)
-		. += "\nIt seems welded shut."
+		. += "It seems welded shut."
+
 	if(broken)
 		switch(broken)
 			if(VENT_DAMAGED_STAGE_ONE)
-				. += "\nIt seems slightly damaged."
+				. += "It seems slightly damaged."
 			if(VENT_DAMAGED_STAGE_TWO)
-				. += "\nIt seems pretty damaged."
+				. += "It seems pretty damaged."
 			if(VENT_DAMAGED_STAGE_THREE)
-				. += "\nIt seems heavily damaged."
+				. += "It seems heavily damaged."
 			if(VENT_BROKEN)
-				. += "\nIt seems absolutely destroyed."
+				. += "It seems absolutely destroyed."

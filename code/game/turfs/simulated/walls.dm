@@ -6,7 +6,7 @@
 	opacity = 1
 	density = 1
 	blocks_air = 1
-	plane = TURF_PLANE
+	plane = DEFAULT_PLANE // TURF_PLANE is for floors, but here we need structure-like rendering.
 	thermal_conductivity = WALL_HEAT_TRANSFER_COEFFICIENT
 	heat_capacity = 312500 //a little over 5 cm thick , 312500 for 1 m by 2.5 m by 0.25 m plasteel wall
 	hitby_sound = 'sound/effects/metalhit2.ogg'
@@ -276,22 +276,21 @@
 	return ..()
 
 //Appearance
-/turf/simulated/wall/_examine_text(mob/user)
+/turf/simulated/wall/examine(mob/user, infix)
 	. = ..()
-
 	if(!damage)
-		. += "\n<span class='notice'>It looks fully intact.</span>"
+		. += SPAN_NOTICE("It looks fully intact.")
 	else
 		var/dam = damage / material.integrity
 		if(dam <= 0.3)
-			. += "\n<span class='warning'>It looks slightly damaged.</span>"
+			. += SPAN_WARNING("It looks slightly damaged.")
 		else if(dam <= 0.6)
-			. += "\n<span class='warning'>It looks moderately damaged.</span>"
+			. += SPAN_WARNING("It looks moderately damaged.")
 		else
-			. += "\n<span class='danger'>It looks heavily damaged.</span>"
+			. += SPAN_WARNING("It looks heavily damaged.")
 
 	if(locate(/obj/effect/overlay/wallrot) in src)
-		. += "\n<span class='warning'>There is fungus growing on [src].</span>"
+		. += SPAN_WARNING("There is fungus growing on [src].")
 
 //Damage
 

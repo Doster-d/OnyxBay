@@ -19,6 +19,7 @@
 	QDEL_NULL(ability_master)
 	QDEL_NULL(shadow)
 	QDEL_NULL(bugreporter)
+	QDEL_NULL(language_menu)
 
 	LAssailant = null
 	for(var/obj/item/grab/G in grabbed_by)
@@ -32,6 +33,10 @@
 	if(click_handlers)
 		click_handlers.QdelClear()
 		QDEL_NULL(click_handlers)
+
+	if(eyeobj)
+		eyeobj.release(src)
+		QDEL_NULL(eyeobj)
 
 	remove_screen_obj_references()
 	if(client)
@@ -81,9 +86,15 @@
 	. = ..()
 	if(species_language)
 		add_language(species_language)
+	language_menu = new (src)
 	update_move_intent_slowdown()
 	if(ignore_pull_slowdown)
 		add_movespeed_mod_immunities(src, /datum/movespeed_modifier/pull_slowdown)
+	add_think_ctx("dust", CALLBACK(src, nameof(.proc/dust)), 0)
+	add_think_ctx("dust_deletion", CALLBACK(src, nameof(.proc/dust_check_delete)), 0)
+	add_think_ctx("remove_from_examine_context", CALLBACK(src, nameof(.proc/remove_from_recent_examines)), 0)
+	add_think_ctx("weaken_context", CALLBACK(src, nameof(.proc/Weaken)), 0)
+	add_think_ctx("post_close_winset", CALLBACK(src, nameof(.proc/post_close_winset)), 0)
 	register_signal(src, SIGNAL_SEE_IN_DARK_SET,	nameof(.proc/set_blackness))
 	register_signal(src, SIGNAL_SEE_INVISIBLE_SET,	nameof(.proc/set_blackness))
 	register_signal(src, SIGNAL_SIGHT_SET,			nameof(.proc/set_blackness))
@@ -247,6 +258,24 @@
 #undef PARTIALLY_BUCKLED
 #undef FULLY_BUCKLED
 
+/**
+ * Assembles one-dimensional array of strings to display inside "Status" stat panel tab.
+ */
+/mob/proc/get_status_tab_items()
+	SHOULD_CALL_PARENT(TRUE)
+	CAN_BE_REDEFINED(TRUE)
+	return list()
+
+/**
+ * Assembles two-dimensional array of objects representing action entry inside stat panel. Objects must
+ * look like `list([action_category], [unclickable_action_string], [action_string], [action_holder_ref])`,
+ * not passing ref makes stat entry unclickable.
+ */
+/mob/proc/get_actions_for_statpanel()
+	SHOULD_CALL_PARENT(TRUE)
+	CAN_BE_REDEFINED(TRUE)
+	return list()
+
 /mob/proc/restrained()
 	return
 
@@ -268,28 +297,46 @@
 /mob/proc/show_inv(mob/user)
 	return
 
-//mob verbs are faster than object verbs. See http://www.byond.com/forum/?post=1326139&page=2#comment8198716 for why this isn't atom/verb/_examine_text()
-/mob/verb/examinate(atom/A as mob|obj|turf in view(src.client.eye))
+// Mob verbs are faster than object verbs. See http://www.byond.com/forum/?post=1326139&page=2#comment8198716 for why this isn't atom/verb/examine()
+/mob/verb/examinate(atom/to_axamine as mob|obj|turf in view(client.eye))
 	set name = "Examine"
 	set category = "IC"
 
-	if((is_blind(src) || usr?.stat) && !isobserver(src))
-		to_chat(src, "<span class='notice'>Something is there but you can't see it.</span>")
-		return 1
+	run_examinate(to_axamine)
 
-	var/examine_result
+/// Runs examine proc chain, generates styled description and prints it to mob's client chat.
+/mob/proc/run_examinate(atom/to_axamine)
+	if((isliving(src) && is_ic_dead(src)) || is_blind(src))
+		to_chat(src, SPAN_NOTICE("Something is there but you can't see it."))
+		return
 
-	face_atom(A)
-	if(istype(src, /mob/living/carbon))
-		var/mob/living/carbon/C = src
-		var/mob/fake = C.get_fake_appearance(A)
-		if(fake)
-			examine_result = fake.examine(src)
+	face_atom(to_axamine)
 
-	if (isnull(examine_result))
-		examine_result = A.examine(src)
+	var/to_examine_ref = ref(to_axamine)
+	var/list/examine_result
 
-	to_chat(usr, examine_result)
+	if(isnull(client))
+		examine_result = to_axamine.examine(src)
+	else
+		if(LAZYISIN(client.recent_examines, to_examine_ref))
+			examine_result = to_axamine.examine_more(src)
+
+			if(!length(examine_result))
+				examine_result += SPAN_NOTICE("<i>You examine [to_axamine] closer, but find nothing of interest...</i>")
+		else
+			examine_result = to_axamine.examine(src)
+			LAZYADD(client.recent_examines, to_examine_ref)
+			set_next_think_ctx("remove_from_examine_context", world.time + 1 SECOND, to_examine_ref)
+
+	to_chat(usr, EXAMINE_BLOCK(examine_result.Join("\n")))
+
+/mob/proc/remove_from_recent_examines(ref_to_remove)
+	SIGNAL_HANDLER
+
+	if(isnull(client))
+		return
+
+	LAZYREMOVE(client.recent_examines, ref_to_remove)
 
 /mob/verb/pointed(atom/A as mob|obj|turf in view())
 	set name = "Point To"
@@ -668,54 +715,6 @@
 	for(var/mob/M in viewers())
 		M.see(message)
 
-/mob/Stat()
-	..()
-	. = (is_client_active(10 MINUTES))
-	if(!.)
-		return
-
-	if(statpanel("Status"))
-		if(GAME_STATE >= RUNLEVEL_LOBBY)
-			stat("Local Time", stationtime2text())
-			stat("Local Date", stationdate2text())
-			stat("Round Duration", roundduration2text())
-		if(client.holder || isghost(client.mob))
-			stat("Location:", "([x], [y], [z]) [loc]")
-
-	if(client.holder)
-		if(statpanel("MC"))
-			stat("CPU:","[world.cpu]")
-			stat("Instances:","[world.contents.len]")
-			stat(null)
-			if(Master)
-				Master.stat_entry()
-			else
-				stat("Master Controller:", "ERROR")
-			if(Failsafe)
-				Failsafe.stat_entry()
-			else
-				stat("Failsafe Controller:", "ERROR")
-			if(Master)
-				stat(null)
-				for(var/datum/controller/subsystem/SS in Master.subsystems)
-					SS.stat_entry()
-
-	if(listed_turf && client)
-		if(!TurfAdjacent(listed_turf))
-			listed_turf = null
-		else
-			if(statpanel("Turf"))
-				stat(listed_turf)
-				for(var/atom/A in listed_turf)
-					if(!A.mouse_opacity)
-						continue
-					if(A.invisibility > see_invisible)
-						continue
-					if(is_type_in_list(A, shouldnt_see))
-						continue
-					stat(A)
-
-
 // facing verbs
 /mob/proc/canface()
 	return !incapacitated()
@@ -923,7 +922,7 @@
 			to_chat(src, "You have nothing stuck in your body that is large enough to remove.")
 		else
 			to_chat(U, "[src] has nothing stuck in their wounds that is large enough to remove.")
-		src.verbs -= /mob/proc/yank_out_object
+		revoke_verb(src, /mob/proc/yank_out_object)
 		return
 
 	var/obj/item/selection = input("What do you want to yank out?", "Embedded objects") in valid_objects
@@ -983,7 +982,7 @@
 
 	valid_objects = get_visible_implants(0)
 	if(!valid_objects.len)
-		src.verbs -= /mob/proc/yank_out_object
+		revoke_verb(src, /mob/proc/yank_out_object)
 
 	return 1
 

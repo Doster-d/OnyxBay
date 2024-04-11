@@ -44,22 +44,26 @@
 		close_browser(usr, "window=stack")
 	return ..()
 
-/obj/item/stack/_examine_text(mob/user)
+/obj/item/stack/examine(mob/user, infix)
 	. = ..()
+
 	if(get_dist(src, user) <= 1)
 		if(!uses_charge)
 			if(plural_name)
-				. += "\nThere [amount == 1 ? "is" : "are"] <b>[amount] [amount == 1 ? "[singular_name]" : "[plural_name]"]</b> in the stack."
+				. += "There [amount == 1 ? "is" : "are"] <b>[amount] [amount == 1 ? "[singular_name]" : "[plural_name]"]</b> in the stack."
 			else
-				. += "\nThere [amount == 1 ? "is" : "are"] <b>[amount] [singular_name]\s</b> in the stack."
+				. += "There [amount == 1 ? "is" : "are"] <b>[amount] [singular_name]\s</b> in the stack."
 		else
-			. += "\nThere is enough charge for <b>[get_amount()]</b>."
+			. += "There is enough charge for <b>[get_amount()]</b>."
+
 	if(color)
-		. += "\nIt's painted."
-	if (istype(src,/obj/item/stack/tile))
+		. += "It's painted."
+
+	if(istype(src, /obj/item/stack/tile))
 		var/obj/item/stack/tile/T = src
+
 		if(length(T.stored_decals))
-			. += "\nIt's has painted decals on it."
+			. += "It's has painted decals on it."
 
 /obj/item/stack/attack_self(mob/user as mob)
 	if(uses_charge)
@@ -163,35 +167,41 @@
 			to_chat(user, "<span class='warning'>\The [recipe.title] must be constructed on the floor!</span>")
 			return
 
-	if((WT && WT.remove_fuel(0, user)) || uses_charge || craft_tool == 1)
+	to_chat(user, "<span class='notice'>Building [recipe.title] ...</span>")
+	if(craft_tool == 2 && WT?.use_tool(src, user, delay = recipe.time, amount = 5))
+		finalize_recipe_production(recipe, required, produced, user)
+		return
 
-		if (recipe.time)
-			to_chat(user, "<span class='notice'>Building [recipe.title] ...</span>")
-			if (!do_after(user, recipe.time))
-				return
+	else if(craft_tool != 2 && do_after(user, recipe.time))
+		finalize_recipe_production(recipe, required, produced, user)
+		return
 
-		if (use(required))
-			var/atom/O
-			if(recipe.use_material)
-				if(istype(src.loc,/turf))
-					O = new recipe.result_type(src.loc, recipe.use_material)
-				else
-					O = new recipe.result_type(user.loc, recipe.use_material)
+/obj/item/stack/proc/finalize_recipe_production(datum/stack_recipe/recipe, required, produced, mob/user)
+	if(QDELETED(src)) // This proc is called after do_after(), some checks are therefore needed
+		return
+
+	if(use(required))
+		var/atom/O
+		if(recipe.use_material)
+			if(istype(src.loc,/turf))
+				O = new recipe.result_type(src.loc, recipe.use_material)
 			else
-				if(istype(src.loc,/turf))
-					O = new recipe.result_type(src.loc)
-				else
-					O = new recipe.result_type(user.loc)
-			O.set_dir(user.dir)
-			O.add_fingerprint(user)
+				O = new recipe.result_type(user.loc, recipe.use_material)
+		else
+			if(istype(src.loc,/turf))
+				O = new recipe.result_type(src.loc)
+			else
+				O = new recipe.result_type(user.loc)
+		O.set_dir(user.dir)
+		O.add_fingerprint(user)
 
-			if (recipe.goes_in_hands && !recipe.on_floor)
-				user.pick_or_drop(O)
+		if(recipe.goes_in_hands && !recipe.on_floor)
+			user.pick_or_drop(O)
 
-			if (istype(O, /obj/item/stack))
-				var/obj/item/stack/S = O
-				S.amount = produced
-				S.add_to_stacks(user, recipe.goes_in_hands)
+		if(istype(O, /obj/item/stack))
+			var/obj/item/stack/S = O
+			S.amount = produced
+			S.add_to_stacks(user, recipe.goes_in_hands)
 
 /obj/item/stack/Topic(href, href_list)
 	..()

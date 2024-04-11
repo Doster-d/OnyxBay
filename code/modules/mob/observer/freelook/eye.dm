@@ -29,10 +29,10 @@
 	visualnet = null
 	. = ..()
 
-/mob/observer/eye/Move(n, direct)
+/mob/observer/eye/Move(newloc, direct)
 	if(owner == src)
 		return EyeMove(direct)
-	return 0
+	return FALSE
 
 /mob/observer/eye/facedir(ndir)
 	if(!canface())
@@ -50,7 +50,7 @@
 	set src = usr.contents
 	return 0
 
-/mob/observer/eye/_examine_text(mob/user)
+/mob/observer/eye/examine(mob/user, infix)
 	return
 
 /mob/observer/eye/proc/possess(mob/user, reset_location=TRUE)

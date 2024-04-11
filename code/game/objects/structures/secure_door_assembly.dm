@@ -8,12 +8,17 @@
 	icon = 'icons/obj/doors/secure_door_assembly.dmi'
 	anchored = FALSE
 	density = TRUE
-	obj_flags = OBJ_FLAG_ANCHORABLE
+	obj_flags = OBJ_FLAG_ANCHORABLE | OBJ_FLAG_ANCHOR_BLOCKS_ROTATION
 	var/state = STATE_UNANCHORED
 	var/obj/item/device/assembly/signaler/signaler = null
 	var/base_icon = null
 	var/material_path = null
 	var/door_path = null
+
+/obj/structure/secure_door_assembly/Initialize()
+	. = ..()
+
+	AddElement(/datum/element/simple_rotation)
 
 /obj/structure/secure_door_assembly/Destroy()
 	QDEL_NULL(signaler)
@@ -66,19 +71,13 @@
 	return ..()
 
 /obj/structure/secure_door_assembly/proc/deconstruct_assembly(obj/item/weldingtool/WT, mob/user)
-	if (WT.remove_fuel(0, user))
-		playsound(loc, 'sound/items/Welder2.ogg', 50, 1)
-		user.visible_message("[user] dissassembles \the [src] .", "You start to dissassemble \the [src] .")
-		if(do_after(user, 40, src))
-			if(!WT.isOn())
-				return
-
-			to_chat(user, SPAN_NOTICE("You dissasembled \the [src] a!"))
-			new /obj/item/stack/material/steel(loc, 10)
-			qdel(src)
-	else
-		to_chat(user, SPAN_NOTICE("You need more welding fuel."))
+	user.visible_message("[user] dissassembles \the [src] .", "You start to dissassemble \the [src] .")
+	if(!WT.use_tool(src, user, delay = 4 SECONDS, amount = 5))
 		return
+
+	to_chat(user, SPAN_NOTICE("You dissasembled \the [src] a!"))
+	new /obj/item/stack/material/steel(loc, 10)
+	qdel(src)
 
 /obj/structure/secure_door_assembly/wrench_floor_bolts(mob/user, delay = 40)
 	. = ..()

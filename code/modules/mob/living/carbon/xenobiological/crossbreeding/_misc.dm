@@ -50,12 +50,12 @@
 	icon = 'icons/obj/xenobiology/metroidcrossing.dmi'
 	icon_state = "metroidbarrier_thick"
 
-/obj/effect/forcefield/metroidwall/New()
-	addtimer(CALLBACK(src, nameof(.proc/finish_existance)), 300)
+/obj/effect/forcefield/metroidwall/Initialize()
+	. = ..()
+	set_next_think(world.time + 30 SECONDS)
 
-/obj/effect/forcefield/metroidwall/proc/finish_existance()
-	qdel(src)
-	return
+/obj/effect/forcefield/metroidwall/think()
+	qdel_self()
 
 //Rainbow barrier - Chilling Rainbow
 /obj/effect/forcefield/metroidwall/rainbow
@@ -85,9 +85,8 @@
 	if(isWelder(W))
 		var/obj/item/weldingtool/WT = W
 
-		if(WT.remove_fuel(0, user))
+		if(WT.use_tool(src, user, amount = 1))
 			damage = 15
-			playsound(loc, 'sound/items/Welder.ogg', 100, 1)
 
 	health -= damage
 	if(health <= 0)

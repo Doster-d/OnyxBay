@@ -426,18 +426,20 @@
 	for(var/obj/structure/window_frame/W in orange(src, 1))
 		W.update_icon()
 
-/obj/structure/window_frame/_examine_text(mob/user)
+/obj/structure/window_frame/examine(mob/user, infix)
 	. = ..()
+
 	if(outer_pane)
 		if(frame_state == FRAME_REINFORCED)
-			. += "\nIt has an outer [outer_pane.name] installed. [outer_pane.get_damage_desc()]"
+			. += "It has an outer [outer_pane.name] installed. [outer_pane.get_damage_desc()]"
 		else
-			. += "\nIt has a [outer_pane.name] installed. [outer_pane.get_damage_desc()]"
+			. += "It has a [outer_pane.name] installed. [outer_pane.get_damage_desc()]"
+
 	if(inner_pane)
-		. += "\nIt has an inner [inner_pane.name] installed. [inner_pane.get_damage_desc()]"
+		. += "It has an inner [inner_pane.name] installed. [inner_pane.get_damage_desc()]"
 
 	if(signaler)
-		. += "\n There is a signaler attached to the wiring."
+		. += "There is a signaler attached to the wiring."
 
 /obj/structure/window_frame/Bumped(atom/user)
 	if(ismob(user))
@@ -493,6 +495,11 @@
 			user.do_attack_animation(src)
 			affected.shatter()
 
+		else if(MUTATION_STRONG in user.mutations)
+			user.visible_message(SPAN("danger", "[user] smashes through \the [src]!"))
+			user.do_attack_animation(src)
+			affected.shatter()
+
 		else if(user.a_intent == I_HURT)
 			if(ishuman(user))
 				var/mob/living/carbon/human/H = user
@@ -515,7 +522,7 @@
 	playsound(loc, 'sound/effects/grillehit.ogg', 80, 1)
 	user.do_attack_animation(src)
 
-	var/damage_dealt = 1
+	var/damage_dealt = 2
 	var/attack_message = "kicks"
 	if(istype(user,/mob/living/carbon/human))
 		var/mob/living/carbon/human/H = user
@@ -528,8 +535,9 @@
 
 	if(MUTATION_HULK in user.mutations)
 		damage_dealt += 5
-	else
-		damage_dealt += 1
+
+	if(MUTATION_STRONG in user.mutations)
+		damage_dealt += 5
 
 	attack_generic(user, damage_dealt, attack_message)
 
