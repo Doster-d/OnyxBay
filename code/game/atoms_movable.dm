@@ -86,6 +86,10 @@
 	..()
 	return
 
+/atom/movable/proc/has_gravity()
+	var/area/A = get_area(src)
+	return A?.has_gravity()
+
 /atom/movable/proc/get_selected_zone()
 	return
 

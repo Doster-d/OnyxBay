@@ -312,7 +312,7 @@
 	/// Weakref to the caller used to generate this info
 	/// Should not use this almost ever, it's for context and to allow for proc chains that
 	/// Require a movable
-	var/datum/weakref/caller_ref = null
+	var/weakref/caller_ref = null
 
 /datum/can_pass_info/New(atom/movable/construct_from, list/access, no_id = FALSE, call_depth = 0)
 	// No infiniloops
@@ -325,7 +325,7 @@
 	if(isnull(construct_from))
 		return
 
-	src.caller_ref = weakref(construct_from)
+	src.caller_ref = construct_from.create_weakref()
 	src.pass_flags = construct_from.pass_flags
 	// src.movement_type = construct_from.movement_type
 	src.thrown = !!construct_from.throwing
